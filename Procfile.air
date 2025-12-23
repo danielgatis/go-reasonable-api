@@ -1,0 +1,2 @@
+api: ./tmp/go-reasonable-api-template api
+worker: ./tmp/go-reasonable-api-template worker

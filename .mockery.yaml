@@ -1,0 +1,29 @@
+structname: Mock{{.InterfaceName}}
+pkgname: mocks
+filename: '{{.InterfaceName | snakecase}}.go'
+template: testify
+template-data:
+  unroll-variadic: true
+packages:
+  go-reasonable-api/app/interfaces/repositories:
+    config:
+      dir: app/mocks/repositories
+    interfaces:
+      AuthTokenRepository: {}
+      EmailVerificationRepository: {}
+      PasswordResetRepository: {}
+      UserRepository: {}
+  go-reasonable-api/app/interfaces/support:
+    config:
+      dir: app/mocks/support
+    interfaces:
+      EmailSender: {}
+      TaskClient: {}
+  go-reasonable-api/app/interfaces/services:
+    config:
+      dir: app/mocks/services
+    interfaces:
+      EmailVerificationService: {}
+      PasswordResetService: {}
+      SessionService: {}
+      UserService: {}

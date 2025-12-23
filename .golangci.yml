@@ -1,0 +1,31 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - unconvert
+    - unparam
+    - depguard
+    - forbidigo
+  settings:
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1000" # Disable package comment requirement
+        - "-ST1001" # Disable dot imports are discouraged
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: "errors"
+              desc: "use github.com/rotisserie/eris instead of standard library errors"
+    forbidigo:
+      forbid:
+        - pattern: '^fmt\.Errorf\('
+          pkg: '^fmt$'
+          msg: "use eris.Errorf instead of fmt.Errorf"
+      analyze-types: true
