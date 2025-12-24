@@ -3,8 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/danielgatis/go-reasonable-api?style=flat-square)](https://goreportcard.com/report/github.com/danielgatis/go-reasonable-api)
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/danielgatis/go-reasonable-api)
 
-
-A reasonable API boilerplate for real-world projects.
+<img width="1536" height="1024" alt="logo" src="https://github.com/user-attachments/assets/1d52503e-b106-4bfc-929e-9dd045c3cac4" />
 
 This template provides a production-ready foundation for building Go APIs. It makes opinionated choices about structure, tooling, and patterns—choices that have proven effective in real projects—while remaining flexible enough to adapt to your needs.
 
