@@ -106,7 +106,7 @@ require (
 	github.com/ashanbrown/makezero/v2 v2.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.7 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.38.1 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.11 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.70 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.84 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.4 // indirect
@@ -117,7 +117,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.84.0 // indirect
-	github.com/aws/smithy-go v1.22.5 // indirect
+	github.com/aws/smithy-go v1.24.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
