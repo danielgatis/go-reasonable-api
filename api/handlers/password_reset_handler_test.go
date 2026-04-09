@@ -12,7 +12,7 @@ import (
 	"go-reasonable-api/support/errors"
 	zhttp "go-reasonable-api/support/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -191,8 +191,7 @@ func TestPasswordResetHandler_Update(t *testing.T) {
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
-			c.SetParamNames("token")
-			c.SetParamValues(tt.token)
+			c.SetPathValues(echo.PathValues{{Name: "token", Value: tt.token}})
 
 			err := handler.Update(c)
 

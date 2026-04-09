@@ -6,8 +6,7 @@ import (
 	"go-reasonable-api/app/interfaces/services"
 	"go-reasonable-api/support/http/middlewares"
 
-	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
+	"github.com/labstack/echo/v5"
 )
 
 // SetupRoutes configures all API routes on the Echo instance.
@@ -33,7 +32,7 @@ func SetupRoutes(
 	healthHandler *handlers.HealthHandler,
 ) {
 	e.GET("/health", healthHandler.Health)
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET("/swagger/*", swaggerHandler)
 
 	authMiddleware := middlewares.AuthMiddleware(sessionService)
 	optionalAuthMiddleware := middlewares.OptionalAuthMiddleware(sessionService)

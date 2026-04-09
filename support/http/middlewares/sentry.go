@@ -6,14 +6,14 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SentryMiddleware sets up Sentry context for each request and captures panics.
 // Error capturing is handled by the error handler.
 func SentryMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			ctx := c.Request().Context()
 			hub := sentry.GetHubFromContext(ctx)
 			if hub == nil {
@@ -28,7 +28,10 @@ func SentryMiddleware() echo.MiddlewareFunc {
 			defer func() {
 				if r := recover(); r != nil {
 					hub.RecoverWithContext(ctx, r)
-					c.Error(echo.NewHTTPError(http.StatusInternalServerError, "internal server error"))
+					_ = c.JSON(http.StatusInternalServerError, map[string]string{
+						"code":    "INTERNAL_ERROR",
+						"message": "internal server error",
+					})
 				}
 			}()
 
@@ -41,7 +44,7 @@ func SentryMiddleware() echo.MiddlewareFunc {
 // Only use this if tracing is enabled in Sentry config.
 func SentryTracingMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			ctx := c.Request().Context()
 
 			options := []sentry.SpanOption{
@@ -57,7 +60,7 @@ func SentryTracingMiddleware() echo.MiddlewareFunc {
 			span.SetTag("http.url", c.Request().URL.String())
 
 			defer func() {
-				span.Status = httpStatusToSpanStatus(c.Response().Status)
+				span.Status = httpStatusToSpanStatus(c.Response().(*echo.Response).Status)
 				span.Finish()
 			}()
 

@@ -7,7 +7,7 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 	"go-reasonable-api/support/sentry"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // ErrorResponse is the JSON structure returned for all errors.
@@ -19,8 +19,8 @@ type ErrorResponse struct {
 
 // ErrorHandler is Echo's custom error handler. It transforms errors into
 // consistent JSON responses and reports 5xx errors to Sentry.
-func ErrorHandler(err error, c echo.Context) {
-	if c.Response().Committed {
+func ErrorHandler(c *echo.Context, err error) {
+	if c.Response().(*echo.Response).Committed {
 		return
 	}
 
@@ -36,13 +36,9 @@ func ErrorHandler(err error, c echo.Context) {
 		}
 	} else if he, ok := err.(*echo.HTTPError); ok {
 		statusCode = he.Code
-		msg := "internal server error"
-		if m, ok := he.Message.(string); ok {
-			msg = m
-		}
 		response = ErrorResponse{
 			Code:    "INTERNAL_ERROR",
-			Message: msg,
+			Message: he.Message,
 		}
 	} else {
 		statusCode = http.StatusInternalServerError

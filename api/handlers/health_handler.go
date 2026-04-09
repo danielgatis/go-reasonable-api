@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RedisPinger is an interface for checking Redis connectivity.
@@ -48,7 +48,7 @@ type HealthStatus struct {
 // @Success 200 {object} HealthResponse
 // @Failure 503 {object} HealthResponse
 // @Router /health [get]
-func (h *HealthHandler) Health(c echo.Context) error {
+func (h *HealthHandler) Health(c *echo.Context) error {
 	ctx, cancel := context.WithTimeout(c.Request().Context(), 5*time.Second)
 	defer cancel()
 

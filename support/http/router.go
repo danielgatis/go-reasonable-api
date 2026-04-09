@@ -6,7 +6,7 @@ import (
 	"go-reasonable-api/app/interfaces/services"
 	"go-reasonable-api/support/config"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rs/zerolog"
 )
 
@@ -54,7 +54,6 @@ func (r *Router) Port() string {
 // Setup configures middleware, routes, and returns the Echo instance.
 // Call this once before starting the server.
 func (r *Router) Setup() *echo.Echo {
-	r.echo.HideBanner = true
 	r.echo.Validator = NewValidator()
 	r.echo.HTTPErrorHandler = ErrorHandler
 	r.setupMiddlewares()

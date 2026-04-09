@@ -3,13 +3,13 @@ package middlewares
 import (
 	"fmt"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SecurityHeaders adds common security headers to all responses.
 func SecurityHeaders() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			h := c.Response().Header()
 
 			// Prevent MIME type sniffing
@@ -39,7 +39,7 @@ func SecurityHeaders() echo.MiddlewareFunc {
 // Only use this when serving over HTTPS.
 func StrictTransportSecurity(maxAge int) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if maxAge > 0 {
 				c.Response().Header().Set(
 					"Strict-Transport-Security",

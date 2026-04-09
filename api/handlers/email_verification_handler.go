@@ -9,7 +9,7 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 	"go-reasonable-api/support/logger"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 )
 
@@ -33,7 +33,7 @@ func NewEmailVerificationHandler(emailVerificationService services.EmailVerifica
 // @Success 202
 // @Failure 400 {object} errors.AppError
 // @Router /email-verifications [post]
-func (h *EmailVerificationHandler) Create(c echo.Context) error {
+func (h *EmailVerificationHandler) Create(c *echo.Context) error {
 	if userID, ok := reqctx.GetUserID(c); ok {
 		if err := h.emailVerificationService.Send(c.Request().Context(), userID); err != nil {
 			return eris.Wrap(err, "failed to send email verification")
@@ -68,7 +68,7 @@ func (h *EmailVerificationHandler) Create(c echo.Context) error {
 // @Failure 400 {object} errors.AppError
 // @Failure 422 {object} errors.AppError
 // @Router /email-verifications/{token} [put]
-func (h *EmailVerificationHandler) Update(c echo.Context) error {
+func (h *EmailVerificationHandler) Update(c *echo.Context) error {
 	token, err := bind.RequiredParam(c, "token")
 	if err != nil {
 		return err

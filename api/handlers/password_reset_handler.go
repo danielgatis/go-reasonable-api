@@ -8,7 +8,7 @@ import (
 	"go-reasonable-api/support/http/bind"
 	"go-reasonable-api/support/logger"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 )
 
@@ -32,7 +32,7 @@ func NewPasswordResetHandler(passwordResetService services.PasswordResetService)
 // @Success 202
 // @Failure 400 {object} errors.AppError
 // @Router /password-resets [post]
-func (h *PasswordResetHandler) Create(c echo.Context) error {
+func (h *PasswordResetHandler) Create(c *echo.Context) error {
 	var req requests.CreatePasswordResetRequest
 	if err := bind.AndValidate(c, &req); err != nil {
 		return err
@@ -61,7 +61,7 @@ func (h *PasswordResetHandler) Create(c echo.Context) error {
 // @Failure 400 {object} errors.AppError
 // @Failure 422 {object} errors.AppError
 // @Router /password-resets/{token} [put]
-func (h *PasswordResetHandler) Update(c echo.Context) error {
+func (h *PasswordResetHandler) Update(c *echo.Context) error {
 	token, err := bind.RequiredParam(c, "token")
 	if err != nil {
 		return err

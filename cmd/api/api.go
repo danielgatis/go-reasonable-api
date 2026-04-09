@@ -2,14 +2,16 @@ package api
 
 import (
 	"context"
-	"time"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"go-reasonable-api/support/config"
 	"go-reasonable-api/support/logger"
 	"go-reasonable-api/support/sentry"
 	"go-reasonable-api/support/wire"
 
-	ctrlc "github.com/danielgatis/go-ctrlc"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 	"github.com/spf13/cobra"
 )
@@ -42,32 +44,22 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	defer cleanup()
 
-	echo := router.Setup()
+	e := router.Setup()
 
-	// Start server in a goroutine
-	go func() {
-		logger.Info().Str("port", router.Port()).Msg("starting API server")
-		if err := echo.Start(":" + router.Port()); err != nil {
-			logger.Info().Msg("server stopped")
-		}
-	}()
+	// Create a context that is cancelled on SIGINT/SIGTERM for graceful shutdown
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	// Wait for Ctrl+C signal
-	done := make(chan struct{})
-	ctrlc.Watch(func() {
-		logger.Info().Msg("received shutdown signal, gracefully shutting down...")
+	sc := echo.StartConfig{
+		Address:    ":" + router.Port(),
+		HideBanner: true,
+	}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
+	logger.Info().Str("port", router.Port()).Msg("starting API server")
+	if err := sc.Start(ctx, e); err != nil {
+		logger.Error().Err(err).Msg("server error")
+	}
 
-		if err := echo.Shutdown(ctx); err != nil {
-			logger.Error().Err(err).Msg("failed to shutdown server gracefully")
-		}
-
-		close(done)
-	})
-
-	<-done
 	logger.Info().Msg("server shutdown complete")
 	return nil
 }

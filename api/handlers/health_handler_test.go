@@ -9,7 +9,7 @@ import (
 	"go-reasonable-api/api/handlers"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

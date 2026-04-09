@@ -1,15 +1,9 @@
 package http
 
 import (
-	"fmt"
-
 	"go-reasonable-api/support/http/middlewares"
-	"go-reasonable-api/support/http/reqctx"
-	"go-reasonable-api/support/logger"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/time/rate"
+	"github.com/labstack/echo/v5/middleware"
 )
 
 func (r *Router) setupMiddlewares() {
@@ -27,18 +21,6 @@ func (r *Router) setupMiddlewares() {
 
 	r.echo.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		DisableStackAll: true,
-		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
-			l := reqctx.Logger(c)
-			if l == nil {
-				l = r.logger
-			}
-			l.Error().Err(err).Msg("panic recovered")
-			// Print readable stack trace in DEV
-			if logger.IsDev() && len(stack) > 0 {
-				fmt.Printf("\n%s\n", stack)
-			}
-			return err
-		},
 	}))
 	r.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     r.config.Server.CORS.AllowOrigins,
@@ -47,6 +29,6 @@ func (r *Router) setupMiddlewares() {
 		AllowCredentials: r.config.Server.CORS.AllowCredentials,
 		MaxAge:           r.config.Server.CORS.MaxAge,
 	}))
-	r.echo.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(r.config.Server.RateLimitPerSecond))))
+	r.echo.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(float64(r.config.Server.RateLimitPerSecond))))
 	r.echo.Use(middlewares.SecurityHeaders())
 }

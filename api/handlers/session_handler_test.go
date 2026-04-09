@@ -17,7 +17,7 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -133,14 +133,14 @@ func TestSessionHandler_Create(t *testing.T) {
 func TestSessionHandler_DeleteCurrent(t *testing.T) {
 	tests := []struct {
 		name           string
-		setupContext   func(echo.Context)
+		setupContext   func(*echo.Context)
 		setupMock      func(*mocks.MockSessionService)
 		expectedStatus int
 		expectedError  string
 	}{
 		{
 			name: "deletes session successfully",
-			setupContext: func(c echo.Context) {
+			setupContext: func(c *echo.Context) {
 				reqctx.SetToken(c, "valid-token")
 			},
 			setupMock: func(sessionSvc *mocks.MockSessionService) {
@@ -150,14 +150,14 @@ func TestSessionHandler_DeleteCurrent(t *testing.T) {
 		},
 		{
 			name:           "returns error when token not in context",
-			setupContext:   func(c echo.Context) {},
+			setupContext:   func(c *echo.Context) {},
 			setupMock:      func(sessionSvc *mocks.MockSessionService) {},
 			expectedStatus: http.StatusUnauthorized,
 			expectedError:  "INVALID_TOKEN",
 		},
 		{
 			name: "returns error when delete fails",
-			setupContext: func(c echo.Context) {
+			setupContext: func(c *echo.Context) {
 				reqctx.SetToken(c, "valid-token")
 			},
 			setupMock: func(sessionSvc *mocks.MockSessionService) {

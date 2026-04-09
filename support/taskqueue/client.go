@@ -8,7 +8,7 @@ import (
 	"go-reasonable-api/support/sentry"
 
 	"github.com/hibiken/asynq"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 )
 
@@ -24,7 +24,7 @@ func NewClient(asynqClient *asynq.Client) *Client {
 
 // Enqueue creates and enqueues a task with metadata extracted from echo.Context.
 // Use this when you have an echo.Context (in handlers).
-func (c *Client) Enqueue(ec echo.Context, taskType string, payload any, opts ...asynq.Option) (*asynq.TaskInfo, error) {
+func (c *Client) Enqueue(ec *echo.Context, taskType string, payload any, opts ...asynq.Option) (*asynq.TaskInfo, error) {
 	requestID := reqctx.GetRequestID(ec)
 	userID := ""
 	if uid, ok := reqctx.GetUserID(ec); ok {

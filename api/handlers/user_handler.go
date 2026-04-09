@@ -10,7 +10,7 @@ import (
 	"go-reasonable-api/support/http/bind"
 	"go-reasonable-api/support/http/reqctx"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 )
 
@@ -38,7 +38,7 @@ func NewUserHandler(userService services.UserService, sessionService services.Se
 // @Failure 400 {object} errors.AppError
 // @Failure 422 {object} errors.AppError
 // @Router /users [post]
-func (h *UserHandler) Create(c echo.Context) error {
+func (h *UserHandler) Create(c *echo.Context) error {
 	var req requests.CreateUserRequest
 	if err := bind.AndValidate(c, &req); err != nil {
 		return err
@@ -75,7 +75,7 @@ func (h *UserHandler) Create(c echo.Context) error {
 // @Success 200 {object} responses.UserResponse
 // @Failure 401 {object} errors.AppError
 // @Router /users/me [get]
-func (h *UserHandler) Me(c echo.Context) error {
+func (h *UserHandler) Me(c *echo.Context) error {
 	userID, ok := reqctx.GetUserID(c)
 	if !ok {
 		return apperrors.ErrInvalidToken
@@ -106,7 +106,7 @@ func (h *UserHandler) Me(c echo.Context) error {
 // @Failure 401 {object} errors.AppError
 // @Failure 422 {object} errors.AppError
 // @Router /users/me [delete]
-func (h *UserHandler) Delete(c echo.Context) error {
+func (h *UserHandler) Delete(c *echo.Context) error {
 	userID, ok := reqctx.GetUserID(c)
 	if !ok {
 		return apperrors.ErrInvalidToken

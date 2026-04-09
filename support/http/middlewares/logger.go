@@ -9,19 +9,19 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 	"go-reasonable-api/support/logger"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rs/zerolog"
 )
 
 func LoggerMiddleware(fallbackLogger *zerolog.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			start := time.Now()
 
 			err := next(c)
 
 			req := c.Request()
-			res := c.Response()
+			res := c.Response().(*echo.Response)
 			latency := time.Since(start)
 
 			l := reqctx.Logger(c)

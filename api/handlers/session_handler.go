@@ -10,7 +10,7 @@ import (
 	"go-reasonable-api/support/http/bind"
 	"go-reasonable-api/support/http/reqctx"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 )
 
@@ -36,7 +36,7 @@ func NewSessionHandler(sessionService services.SessionService) *SessionHandler {
 // @Failure 400 {object} errors.AppError
 // @Failure 401 {object} errors.AppError
 // @Router /sessions [post]
-func (h *SessionHandler) Create(c echo.Context) error {
+func (h *SessionHandler) Create(c *echo.Context) error {
 	var req requests.CreateSessionRequest
 	if err := bind.AndValidate(c, &req); err != nil {
 		return err
@@ -68,7 +68,7 @@ func (h *SessionHandler) Create(c echo.Context) error {
 // @Success 204
 // @Failure 401 {object} errors.AppError
 // @Router /sessions/current [delete]
-func (h *SessionHandler) DeleteCurrent(c echo.Context) error {
+func (h *SessionHandler) DeleteCurrent(c *echo.Context) error {
 	token, ok := reqctx.GetToken(c)
 	if !ok {
 		return apperrors.ErrInvalidToken

@@ -9,12 +9,12 @@ import (
 	"go-reasonable-api/support/logger"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func AuthMiddleware(sessionService services.SessionService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
 				return errors.ErrMissingAuthHeader
@@ -40,7 +40,7 @@ func AuthMiddleware(sessionService services.SessionService) echo.MiddlewareFunc 
 
 func OptionalAuthMiddleware(sessionService services.SessionService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
 				return next(c)
@@ -66,7 +66,7 @@ func OptionalAuthMiddleware(sessionService services.SessionService) echo.Middlew
 
 // setAuthContext sets the authenticated user's ID and token in the request context.
 // It also enriches the logger with the user_id for request tracing.
-func setAuthContext(c echo.Context, userID uuid.UUID, token string) {
+func setAuthContext(c *echo.Context, userID uuid.UUID, token string) {
 	reqctx.SetUserID(c, userID)
 	reqctx.SetToken(c, token)
 

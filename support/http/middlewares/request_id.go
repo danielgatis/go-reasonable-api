@@ -5,7 +5,7 @@ import (
 	"go-reasonable-api/support/logger"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rs/zerolog"
 )
 
@@ -18,7 +18,7 @@ const HeaderXRequestID = "X-Request-ID"
 // allowing services to access it via logger.Ctx(ctx).
 func RequestIDMiddleware(baseLogger *zerolog.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// Check if request ID was provided in header, otherwise generate one
 			requestID := c.Request().Header.Get(HeaderXRequestID)
 			if requestID == "" {

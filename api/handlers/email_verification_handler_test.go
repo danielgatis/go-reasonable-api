@@ -14,7 +14,7 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,7 +33,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 	tests := []struct {
 		name           string
 		requestBody    string
-		setupContext   func(c echo.Context)
+		setupContext   func(c *echo.Context)
 		setupMock      func(*mocks.MockEmailVerificationService)
 		expectedStatus int
 		expectedError  string
@@ -42,7 +42,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:        "sends verification email for authenticated user",
 			requestBody: ``,
-			setupContext: func(c echo.Context) {
+			setupContext: func(c *echo.Context) {
 				reqctx.SetUserID(c, userID)
 			},
 			setupMock: func(emailVerifySvc *mocks.MockEmailVerificationService) {
@@ -53,7 +53,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:        "returns error when send fails for authenticated user",
 			requestBody: ``,
-			setupContext: func(c echo.Context) {
+			setupContext: func(c *echo.Context) {
 				reqctx.SetUserID(c, userID)
 			},
 			setupMock: func(emailVerifySvc *mocks.MockEmailVerificationService) {
@@ -66,7 +66,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:         "resends verification email for unauthenticated user",
 			requestBody:  `{"email":"test@example.com"}`,
-			setupContext: func(c echo.Context) {},
+			setupContext: func(c *echo.Context) {},
 			setupMock: func(emailVerifySvc *mocks.MockEmailVerificationService) {
 				emailVerifySvc.EXPECT().Resend(mock.Anything, "test@example.com").Return(nil)
 			},
@@ -75,7 +75,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:         "returns accepted even if user not found for resend",
 			requestBody:  `{"email":"notfound@example.com"}`,
-			setupContext: func(c echo.Context) {},
+			setupContext: func(c *echo.Context) {},
 			setupMock: func(emailVerifySvc *mocks.MockEmailVerificationService) {
 				emailVerifySvc.EXPECT().Resend(mock.Anything, "notfound@example.com").Return(apperrors.ErrUserNotFound)
 			},
@@ -84,7 +84,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:           "returns error for invalid JSON",
 			requestBody:    `{invalid}`,
-			setupContext:   func(c echo.Context) {},
+			setupContext:   func(c *echo.Context) {},
 			setupMock:      func(emailVerifySvc *mocks.MockEmailVerificationService) {},
 			expectedStatus: http.StatusInternalServerError,
 			isBindError:    true,
@@ -92,7 +92,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:           "returns error for missing email when unauthenticated",
 			requestBody:    `{}`,
-			setupContext:   func(c echo.Context) {},
+			setupContext:   func(c *echo.Context) {},
 			setupMock:      func(emailVerifySvc *mocks.MockEmailVerificationService) {},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  "VALIDATION_ERROR",
@@ -100,7 +100,7 @@ func TestEmailVerificationHandler_Create(t *testing.T) {
 		{
 			name:           "returns error for invalid email when unauthenticated",
 			requestBody:    `{"email":"notanemail"}`,
-			setupContext:   func(c echo.Context) {},
+			setupContext:   func(c *echo.Context) {},
 			setupMock:      func(emailVerifySvc *mocks.MockEmailVerificationService) {},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  "VALIDATION_ERROR",
@@ -206,8 +206,7 @@ func TestEmailVerificationHandler_Update(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPut, "/email-verifications/"+tt.token, nil)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
-			c.SetParamNames("token")
-			c.SetParamValues(tt.token)
+			c.SetPathValues(echo.PathValues{{Name: "token", Value: tt.token}})
 
 			err := handler.Update(c)
 

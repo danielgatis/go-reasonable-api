@@ -17,7 +17,7 @@ import (
 	"go-reasonable-api/support/http/reqctx"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -170,14 +170,14 @@ func TestUserHandler_Me(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		setupContext   func(c echo.Context)
+		setupContext   func(c *echo.Context)
 		setupMock      func(*mocks.MockUserService)
 		expectedStatus int
 		expectedError  string
 	}{
 		{
 			name: "returns user successfully",
-			setupContext: func(c echo.Context) {
+			setupContext: func(c *echo.Context) {
 				reqctx.SetUserID(c, userID)
 			},
 			setupMock: func(userSvc *mocks.MockUserService) {
@@ -192,14 +192,14 @@ func TestUserHandler_Me(t *testing.T) {
 		},
 		{
 			name:           "returns error when user not in context",
-			setupContext:   func(c echo.Context) {},
+			setupContext:   func(c *echo.Context) {},
 			setupMock:      func(userSvc *mocks.MockUserService) {},
 			expectedStatus: http.StatusUnauthorized,
 			expectedError:  "INVALID_TOKEN",
 		},
 		{
 			name: "returns error when user not found",
-			setupContext: func(c echo.Context) {
+			setupContext: func(c *echo.Context) {
 				reqctx.SetUserID(c, userID)
 			},
 			setupMock: func(userSvc *mocks.MockUserService) {
