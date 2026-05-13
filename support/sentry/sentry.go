@@ -50,12 +50,11 @@ func CaptureError(err error, extras map[string]any) {
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
-		// Add eris formatted error as extra context for better debugging
-		scope.SetExtra("eris_formatted", eris.ToString(err, true))
-
+		ctx := sentry.Context{"eris_formatted": eris.ToString(err, true)}
 		for k, v := range extras {
-			scope.SetExtra(k, v)
+			ctx[k] = v
 		}
+		scope.SetContext("extra", ctx)
 
 		sentry.CaptureException(err)
 	})

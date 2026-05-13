@@ -256,11 +256,6 @@ const docTemplate = `{
         },
         "/sessions/current": {
             "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Invalidate the current user's authentication token",
                 "consumes": [
                     "application/json"
@@ -282,7 +277,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/errors.AppError"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         },
         "/users": {
@@ -333,11 +333,6 @@ const docTemplate = `{
         },
         "/users/me": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Get the currently authenticated user's information",
                 "consumes": [
                     "application/json"
@@ -362,14 +357,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/errors.AppError"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "Schedule the current user's account for deletion after 30 days. All sessions will be revoked.",
                 "consumes": [
                     "application/json"
@@ -403,7 +398,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/errors.AppError"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         }
     },
