@@ -98,7 +98,7 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/apache/arrow/go/v10 v10.0.1 // indirect
-	github.com/apache/thrift v0.16.0 // indirect
+	github.com/apache/thrift v0.23.0 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.3.0 // indirect
 	github.com/ashanbrown/makezero/v2 v2.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
