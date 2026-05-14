@@ -5,218 +5,129 @@
 
 <img width="1536" height="1024" alt="logo" src="https://github.com/user-attachments/assets/1d52503e-b106-4bfc-929e-9dd045c3cac4" />
 
-This template provides a production-ready foundation for building Go APIs. It makes opinionated choices about structure, tooling, and patterns—choices that have proven effective in real projects—while remaining flexible enough to adapt to your needs.
+A production-ready Go API template, distributed as a [Copier](https://copier.readthedocs.io/) template. Run one command, answer a few questions, and you get a fresh Go project with PostgreSQL, Redis-backed background jobs, email, authentication, and Swagger docs already wired up.
 
-## Features
+## What you get
 
-### Observability Out of the Box
+- **Echo** HTTP framework with structured logging, rate limiting, CORS, panic recovery and graceful shutdown
+- **PostgreSQL** with type-safe queries via [sqlc](https://sqlc.dev/) and migrations via [golang-migrate](https://github.com/golang-migrate/migrate)
+- **Authentication** out of the box: registration, login, logout, password reset, email verification, account deletion with grace period
+- **Background jobs** with [Asynq](https://github.com/hibiken/asynq) (Redis-backed) — retries, scheduling, dead-letter queues
+- **Email** with MailHog for development and SendGrid for production; templates authored in [React Email](https://react.email/)
+- **Compile-time DI** via [Wire](https://github.com/google/wire) — no runtime reflection, no global state
+- **Swagger UI** auto-generated from code annotations
+- **Sentry** integration ready (just set `SENTRY_DSN`)
+- **Hot reload** for both API and worker processes
+- **CLAUDE.md** preconfigured for AI-assisted development
 
-Every log line includes `request_id` and `user_id` (when authenticated). Trace any request from ingress to database and back. **Sentry integration** is pre-configured—just set `SENTRY_DSN` and get full stack traces, request context, and error grouping in production. No setup, no boilerplate, it just works.
+For the full feature tour and architecture notes, see the generated project's `README.md` (rendered from [`README.md.jinja`](README.md.jinja)).
 
-### Email That Just Works
+## Requirements
 
-Development uses **MailHog**—emails are captured locally at `http://localhost:8025`. Production uses **SendGrid**—flip one environment variable and you're sending real emails. Templates are built with **React Email**, so you write JSX components and get beautiful, tested HTML output.
+- [Copier](https://copier.readthedocs.io/) `>= 9.0.0` (install with `pipx install copier` or run on demand with `uvx copier`)
+- Go `>= 1.25`
+- Node.js `>= 22` (for the email templates)
+- Docker + Docker Compose (for local PostgreSQL, Redis, MailHog)
 
-### Authentication Ready to Ship
+## Usage
 
-User registration, login, logout, password reset, email verification—all implemented, tested, and secure. **Account deletion** includes a 30-day grace period (configurable), protecting users from accidental or malicious deletions. Tokens are SHA-256 hashed before storage. Passwords use bcrypt with configurable cost.
-
-### Radical Simplicity
-
-Three layers. That's it. **Handlers** receive HTTP requests. **Services** contain business logic. **Repositories** talk to the database. No managers, no adapters, no abstract factory factories. Your domain code lives in `app/`, infrastructure lives in `support/`. When you need to find something, you know where to look.
-
-### Developer Experience
-
-**Hot reload** out of the box—save a file, see the change. **Swagger UI** auto-generated from code annotations. **Type-safe SQL** via sqlc—write SQL, get Go structs. **Compile-time DI** via Wire—if it compiles, dependencies are satisfied. Configuration via **Viper** with environment variables, files, and sensible defaults.
-
-### Background Jobs Built In
-
-Redis-backed job queue with **Asynq**. Automatic retries, scheduled tasks, dead letter queues. Email sending is already async—users don't wait for SMTP. Add your own jobs in minutes.
-
-### Production Hardened
-
-Rate limiting, graceful shutdown, health checks (database + Redis), CORS, panic recovery, request logging—all configured. Structured JSON logs ready for your log aggregator. Connection pooling tuned for real workloads.
-
-### AI-Agent Ready
-
-Built for the age of AI-assisted development. Ships with a **CLAUDE.md** that teaches AI agents how your codebase works—build commands, architecture patterns, error handling conventions. The `docs/` folder contains **architecture.md** and **project-structure.md** with the context AI agents need to make informed decisions. Claude Code, Cursor, Copilot—they all understand this codebase from day one.
-
-## Philosophy
-
-This template values:
-
-- **Clarity over cleverness**: Code should be obvious to the next developer
-- **Explicit dependencies**: No global state, no magic injection
-- **Practical testing**: Interfaces where they enable testing, not everywhere
-- **Minimal abstractions**: Only add layers that earn their complexity
-
-## Quick Start
+Generate a new project from this template:
 
 ```bash
-# Start infrastructure
-docker compose up -d
-
-# Install dependencies
-make install
-
-# Run database migrations
-make migrate-up
-
-# Start development server (hot reload)
-make dev
+copier copy gh:danielgatis/go-reasonable-api my-new-api
 ```
 
-The API runs at `http://localhost:8080`. Swagger docs at `http://localhost:8080/swagger/index.html`.
+Or, without installing Copier globally:
 
-## Tech Stack
+```bash
+uvx copier copy gh:danielgatis/go-reasonable-api my-new-api
+```
 
-| Component | Choice | Why |
-|-----------|--------|-----|
-| Framework | Echo | Fast, minimal, good middleware ecosystem |
-| Database | PostgreSQL | Reliable, feature-rich, excellent tooling |
-| SQL | sqlc | Type-safe queries, no ORM complexity |
-| DI | Wire | Compile-time injection, clear dependency graph |
-| Background Jobs | Asynq | Redis-backed, simple API, good reliability |
-| Validation | go-playground/validator | Standard, declarative, extensible |
-| Errors | eris | Stack traces, wrapping, better debugging |
+Copier will prompt you for the following values (sensible defaults are derived from `project_name`, so you can mostly press Enter):
 
-## Project Layout
+| Variable | Example | Used in |
+|----------|---------|---------|
+| `project_name` | `My New API` | README title, default for other vars |
+| `project_slug` | `my-new-api` | binary name, docker container names, defaults for db_*, GitHub repo |
+| `project_description` | `Backend API` | Swagger description, CLI `--help`, go.mod comment |
+| `module_path` | `github.com/myorg/my-new-api` | `module` line in `go.mod`, all Go imports |
+| `brand_name` | `Acme` | Swagger title, email subjects, "From" name on outgoing email |
+| `from_email` | `noreply@acme.com` | development default for outgoing email |
+| `db_user` / `db_password` / `db_name` | `my-new-api` | docker-compose, default DSN in `config.go` |
+| `github_user` / `github_repo` | `myorg` / `my-new-api` | README badges |
+
+After Copier finishes it runs a few tasks for you:
+
+1. Rewrites every `import "go-reasonable-api/..."` to `import "<module_path>/..."`.
+2. Runs `go mod tidy` to populate `go.sum`.
+3. Prints the next commands you should run.
+
+Then, inside the generated directory:
+
+```bash
+cd my-new-api
+docker compose up -d          # start Postgres + Redis + MailHog
+make install                  # download Go deps and npm deps for emails
+make generate                 # regenerate wire, sqlc, mockery, swag, email HTML
+make migrate-up               # apply migrations
+make dev                      # API + worker with hot reload
+```
+
+The API will be at `http://localhost:8080`, Swagger UI at `http://localhost:8080/swagger/index.html`, MailHog at `http://localhost:8025`.
+
+## Updating an existing project
+
+Copier supports re-running a template against an already-generated project to pick up upstream improvements:
+
+```bash
+copier update
+```
+
+You will be prompted for any new variables and shown a diff for files that drifted. Files you have edited are 3-way merged.
+
+See [Copier's "Updating a project" docs](https://copier.readthedocs.io/en/stable/updating/) for the details.
+
+## Repository layout (this template repo)
 
 ```
 .
-├── api/            # HTTP layer (handlers, routes, request/response DTOs)
-├── app/            # Application layer (services, repositories, domain errors)
-├── cmd/            # CLI commands (api, worker, migrate)
-├── db/             # Database (migrations, queries, generated code)
-├── docs/           # Documentation
-├── emails/         # Email templates (React Email)
-└── support/        # Infrastructure (config, logging, middleware, DI)
+├── copier.yml              # template questions, exclusions, post-generation tasks
+├── README.md               # this file (template-repo README)
+├── README.md.jinja         # README that ends up in the generated project
+├── go.mod.jinja            # module line is templated
+├── Makefile.jinja          # ldflags + binary name templated
+├── main.go.jinja           # CLI Use/Short templated
+├── docker-compose.yml.jinja
+├── .air.toml.jinja
+├── Procfile.air.jinja
+├── .mockery.yaml.jinja     # interface package paths templated
+├── api/routes.go.jinja             # Swagger @title templated
+├── support/config/config.go.jinja  # DSN, from/brand defaults templated
+├── app/services/*.go.jinja         # email subjects templated
+├── emails/package.json.jinja
+├── emails/src/templates/*.tsx.jinja  # brand name in email bodies
+└── ... everything else is copied verbatim
 ```
 
-See [docs/project-structure.md](docs/project-structure.md) for detailed package responsibilities.
+Files ending in `.jinja` are rendered with Jinja2; the `.jinja` suffix is stripped on output. The template uses `[[ var ]]` and `[% block %]` delimiters (configured via `_envops` in `copier.yml`) so that Go template syntax (`{{ .Field }}`) inside email templates and elsewhere passes through untouched.
 
-## Development Commands
+Generated artifacts (`api/docs/`, `app/mocks/`, `support/wire/wire_gen.go`, `db/sqlcgen/`, `emails/templates/`, `go.sum`, `node_modules/`) are excluded from the template — the generated project rebuilds them via `make generate`.
+
+## Contributing to the template
+
+To develop the template locally:
 
 ```bash
-# Development
-make dev              # Run API + Worker with hot reload
-make run-api          # Run API only
-make run-worker       # Run worker only
-
-# Build & Quality
-make build            # Build binary (includes lint, fmt, generate)
-make lint             # Run linter
-make generate         # Regenerate code (sqlc, wire, mocks, swagger)
-
-# Database
-make migrate-up       # Apply pending migrations
-make migrate-down     # Rollback last migration
-make migrate-status   # Show current migration version
-make migrate-create name=add_users_table  # Create new migration
-
-# Testing
-go test ./...                          # All tests
-go test ./app/services/...             # Single package
-go test -run TestUserService ./...     # Single test
-go test -v -race ./...                 # Verbose with race detection
-
-# Email Templates
-make emails-dev       # Preview email templates in browser
+# Smoke-test that a fresh generation produces a buildable project
+uvx copier copy --trust --defaults --force . /tmp/template-smoke-test
+cd /tmp/template-smoke-test
+go build ./...
 ```
 
-## Configuration
+`--trust` is required because Copier will run the post-generation tasks (sed + go mod tidy).
 
-Configuration loads from environment variables (recommended) or `config.yaml`:
+PRs welcome — open one against `main`.
 
-```bash
-# Required for production
-DATABASE_URL=postgres://user:pass@host:5432/dbname?sslmode=require
-REDIS_ADDR=localhost:6379
-AUTH_SECRET=your-secret-key-min-32-chars
+## License
 
-# Email (choose one provider)
-EMAIL_PROVIDER=sendgrid
-EMAIL_SENDGRID_API_KEY=SG.xxx
-
-# Or for development
-EMAIL_PROVIDER=smtp
-EMAIL_SMTP_HOST=localhost
-EMAIL_SMTP_PORT=1025
-```
-
-See `support/config/config.go` for all options with defaults.
-
-## API Endpoints
-
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| POST | /users | Register new user | - |
-| GET | /users/me | Get current user | Required |
-| DELETE | /users/me | Schedule account deletion | Required |
-| POST | /sessions | Login | - |
-| DELETE | /sessions/current | Logout | Required |
-| POST | /password-resets | Request password reset | - |
-| PUT | /password-resets/:token | Complete password reset | - |
-| POST | /email-verifications | Request verification email | Optional |
-| PUT | /email-verifications/:token | Verify email | - |
-| GET | /health | Health check | - |
-
-## Architecture
-
-See [docs/architecture.md](docs/architecture.md) for:
-- Layered architecture and data flow
-- Dependency injection patterns
-- Error handling strategy
-- Background job processing
-- Security considerations
-
-## Extending the Template
-
-### Adding a New Feature
-
-1. **Define the interface** in `app/interfaces/services/`
-2. **Implement the service** in `app/services/`
-3. **Add repository** if needed in `app/interfaces/repositories/` and `app/repositories/`
-4. **Create handler** in `api/handlers/`
-5. **Wire it up** in `support/wire/wire.go`
-6. **Add routes** in `api/routes.go`
-7. **Run `make generate`** to regenerate Wire code
-
-### Adding a Background Job
-
-1. Define task type and payload in `app/tasks/`
-2. Implement handler function
-3. Register in `app/tasks/registry.go`
-4. Enqueue from services via `TaskClient.EnqueueCtx()`
-
-### Adding a New Migration
-
-```bash
-make migrate-create name=add_notifications_table
-# Edit db/migrations/XXXX_add_notifications_table.up.sql
-# Edit db/migrations/XXXX_add_notifications_table.down.sql
-make migrate-up
-```
-
-## Testing Strategy
-
-- **Unit tests**: Services with mocked repositories (`app/services/*_test.go`)
-- **Repository tests**: Against real database using testcontainers (`app/repositories/*_test.go`)
-- **Handler tests**: HTTP tests with mocked services (`api/handlers/*_test.go`)
-
-Mocks are generated with mockery. Run `make generate` after changing interfaces.
-
-## Deployment
-
-Build the binary:
-```bash
-make build
-./bin/go-reasonable-api api      # Start API server
-./bin/go-reasonable-api worker   # Start background worker
-```
-
-Both processes should run concurrently in production. Use your orchestrator's process management or a process supervisor.
-
-Required infrastructure:
-- PostgreSQL 14+
-- Redis 6+
+MIT — see `LICENSE` (carried into generated projects as-is).

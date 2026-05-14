@@ -11,8 +11,8 @@ import (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "go-reasonable-api",
-		Short: "ZapAgenda - Backend API",
+		Use:   "[[ project_slug ]]",
+		Short: "[[ brand_name ]] - [[ project_description ]]",
 	}
 
 	rootCmd.AddCommand(api.NewCommand())

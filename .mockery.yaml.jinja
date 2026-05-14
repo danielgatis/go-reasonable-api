@@ -5,7 +5,7 @@ template: testify
 template-data:
   unroll-variadic: true
 packages:
-  go-reasonable-api/app/interfaces/repositories:
+  [[ module_path ]]/app/interfaces/repositories:
     config:
       dir: app/mocks/repositories
     interfaces:
@@ -13,13 +13,13 @@ packages:
       EmailVerificationRepository: {}
       PasswordResetRepository: {}
       UserRepository: {}
-  go-reasonable-api/app/interfaces/support:
+  [[ module_path ]]/app/interfaces/support:
     config:
       dir: app/mocks/support
     interfaces:
       EmailSender: {}
       TaskClient: {}
-  go-reasonable-api/app/interfaces/services:
+  [[ module_path ]]/app/interfaces/services:
     config:
       dir: app/mocks/services
     interfaces:

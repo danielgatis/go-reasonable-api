@@ -74,7 +74,7 @@ func (s *EmailVerificationService) Send(ctx context.Context, userID uuid.UUID) e
 
 	s.taskClient.EnqueueCtx(ctx, tasks.TypeEmail, tasks.EmailPayload{
 		To:       user.Email,
-		Subject:  "Confirme seu Email - ZapAgenda",
+		Subject:  "Confirm your email - [[ brand_name ]]",
 		Template: "email-verification",
 		Data: map[string]any{
 			"Name":             user.Name,

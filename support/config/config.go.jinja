@@ -160,7 +160,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("server.cors.allow_headers", []string{"Origin", "Content-Type", "Accept", "Authorization"})
 	viper.SetDefault("server.cors.allow_credentials", false)
 	viper.SetDefault("server.cors.max_age", 86400) // 24 hours
-	viper.SetDefault("database.url", "postgres://reasonable:reasonable@localhost:5433/reasonable?sslmode=disable")
+	viper.SetDefault("database.url", "postgres://[[ db_user ]]:[[ db_password ]]@localhost:5433/[[ db_name ]]?sslmode=disable")
 	viper.SetDefault("database.max_open_conns", 25)
 	viper.SetDefault("database.max_idle_conns", 10)
 	viper.SetDefault("database.conn_max_lifetime", "5m")
@@ -183,8 +183,8 @@ func Load() (*Config, error) {
 
 	// Email defaults for development (MailHog)
 	viper.SetDefault("email.provider", "smtp")
-	viper.SetDefault("email.from", "noreply@go-reasonable-api.local")
-	viper.SetDefault("email.from_name", "ZapAgenda")
+	viper.SetDefault("email.from", "[[ from_email ]]")
+	viper.SetDefault("email.from_name", "[[ brand_name ]]")
 	viper.SetDefault("email.smtp_host", "localhost")
 	viper.SetDefault("email.smtp_port", 1025)
 	viper.SetDefault("email.smtp_user", "")

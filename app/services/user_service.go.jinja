@@ -123,7 +123,7 @@ func (s *UserService) ScheduleDeletion(ctx context.Context, userID uuid.UUID) er
 
 	s.taskClient.EnqueueCtx(ctx, tasks.TypeEmail, tasks.EmailPayload{
 		To:       userEmail,
-		Subject:  "Sua conta será excluída - ZapAgenda",
+		Subject:  "Your account is scheduled for deletion - [[ brand_name ]]",
 		Template: "account-deletion-scheduled",
 		Data: map[string]any{
 			"Name":        userName,

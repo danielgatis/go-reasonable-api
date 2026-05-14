@@ -1,0 +1,99 @@
+# Copier configuration for go-reasonable-api template.
+# https://copier.readthedocs.io/
+
+_min_copier_version: "9.0.0"
+_templates_suffix: ".jinja"
+
+# Use bracketed Jinja delimiters so the template does not collide with
+# Go template syntax (`{{ .Field }}`) used in email and HTML templates.
+_envops:
+  block_start_string: "[%"
+  block_end_string: "%]"
+  variable_start_string: "[["
+  variable_end_string: "]]"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+
+# Files we do not want to ship into the generated project.
+# Generated artifacts (api/docs, app/mocks, wire_gen.go, db/sqlcgen,
+# emails/templates) are kept so that the project builds immediately
+# after copy; the post-task sed rewrites their imports in-place. They
+# get refreshed when the user runs `make generate`.
+_exclude:
+  - "copier.yml"
+  - ".git"
+  - "bin"
+  - "tmp"
+  - "node_modules"
+  - "emails/node_modules"
+  - "go.sum"
+  - "emails/package-lock.json"
+
+# Post-generation tasks. They run inside the destination directory.
+# - Rewrite Go imports from the template module path to the chosen one.
+# - Refresh go.sum / regenerate code so the project is immediately buildable.
+_tasks:
+  - "find . -type f -name '*.go' -print0 | xargs -0 sed -i.copier-bak -e 's|\"go-reasonable-api/|\"[[ module_path ]]/|g'"
+  - "find . -type f -name '*.copier-bak' -delete"
+  - "go mod tidy"
+  - 'echo "Template applied. Next: docker compose up -d && make install && make generate && make migrate-up && make dev"'
+
+# Questions asked to the user.
+project_name:
+  type: str
+  help: "Human-friendly project name (used in docs and CLI description)."
+  default: "Reasonable API"
+
+project_slug:
+  type: str
+  help: "Slug used for the binary, docker containers, and database name."
+  default: "[[ project_name | lower | replace(' ', '-') | replace('_', '-') ]]"
+  validator: >-
+    [% if not (project_slug | regex_search('^[a-z][a-z0-9-]*$')) %]
+    project_slug must match ^[a-z][a-z0-9-]*$
+    [% endif %]
+
+project_description:
+  type: str
+  help: "One-line description for the CLI and go.mod."
+  default: "Backend API"
+
+module_path:
+  type: str
+  help: "Go module path (e.g. github.com/yourorg/yourrepo)."
+  default: "github.com/yourorg/[[ project_slug ]]"
+
+brand_name:
+  type: str
+  help: "Brand name shown in Swagger title and email subjects."
+  default: "[[ project_name ]]"
+
+from_email:
+  type: str
+  help: "Default 'From' address for outgoing email (development default)."
+  default: "noreply@[[ project_slug ]].local"
+
+db_user:
+  type: str
+  help: "Default PostgreSQL user (development only)."
+  default: "[[ project_slug ]]"
+
+db_password:
+  type: str
+  help: "Default PostgreSQL password (development only)."
+  default: "[[ project_slug ]]"
+
+db_name:
+  type: str
+  help: "Default PostgreSQL database name (development only)."
+  default: "[[ project_slug ]]"
+
+github_user:
+  type: str
+  help: "GitHub user/org used in README badges."
+  default: "[[ module_path.split('/')[1] if module_path.startswith('github.com/') else 'yourorg' ]]"
+
+github_repo:
+  type: str
+  help: "GitHub repository name used in README badges."
+  default: "[[ project_slug ]]"

@@ -4,6 +4,7 @@ import {
   Container,
   Head,
   Html,
+  Link,
   Preview,
   Section,
   Tailwind,
@@ -14,64 +15,68 @@ import { tailwindConfig } from "../tailwind.config";
 
 // Go template placeholders
 const NAME = "{{.Name}}";
-const LOGIN_LINK = "{{.LoginLink}}";
+const VERIFICATION_LINK = "{{.VerificationLink}}";
 
-export const Welcome = () => {
+export const EmailVerification = () => {
   return (
     <Html>
       <Head />
-      <Preview>Bem-vindo ao ZapAgenda!</Preview>
+      <Preview>Confirm your email on [[ brand_name ]]</Preview>
       <Tailwind config={tailwindConfig}>
         <Body className="bg-gray-100 font-sans">
           <Container className="bg-white mx-auto my-10 max-w-xl rounded-lg shadow-sm">
             <Section className="px-12 py-8 border-b border-gray-200">
               <Text className="text-2xl font-bold text-brand m-0">
-                ZapAgenda
+                [[ brand_name ]]
               </Text>
             </Section>
 
             <Section className="px-12 py-8">
               <Text className="text-xl font-bold text-brand mb-6">
-                Bem-vindo ao ZapAgenda!
+                Confirm your email
               </Text>
 
               <Text className="text-base text-gray-600 leading-7 mb-4">
-                Olá {NAME},
-              </Text>
-
-              <Text className="text-base text-gray-600 leading-7 mb-4">
-                Sua conta foi criada com sucesso! Estamos muito felizes em ter
-                você conosco.
+                Hi {NAME},
               </Text>
 
               <Text className="text-base text-gray-600 leading-7 mb-6">
-                O ZapAgenda vai ajudar você a gerenciar seus agendamentos de
-                forma simples e eficiente. Comece agora mesmo:
+                Thanks for signing up with [[ brand_name ]]! To finish creating
+                your account and keep it secure, please confirm your email by
+                clicking the button below:
               </Text>
 
               <Button
-                href={LOGIN_LINK}
+                href={VERIFICATION_LINK}
                 className="bg-brand text-white font-semibold py-3 px-6 rounded-lg"
               >
-                Acessar Minha Conta
+                Confirm email
               </Button>
 
               <Text className="text-base text-gray-600 leading-7 mt-6 mb-4">
-                Se tiver alguma dúvida, não hesite em entrar em contato com
-                nosso suporte.
+                If you didn't create an account with [[ brand_name ]], you can
+                safely ignore this email.
               </Text>
 
-              <Text className="text-base text-gray-600 leading-7">
-                Atenciosamente,
+              <Text className="text-base text-gray-600 leading-7 mb-4">
+                This link expires in 24 hours. If you need a new one, sign in
+                to your account and request a new confirmation email.
+              </Text>
+
+              <Text className="text-sm text-gray-400 mt-8">
+                If the button doesn't work, copy and paste this link into
+                your browser:
                 <br />
-                Equipe ZapAgenda
+                <Link href={VERIFICATION_LINK} className="text-brand break-all">
+                  {VERIFICATION_LINK}
+                </Link>
               </Text>
             </Section>
 
             <Section className="px-12 py-6 border-t border-gray-200">
               <Text className="text-xs text-gray-400 text-center m-0">
-                © {new Date().getFullYear()} ZapAgenda. Todos os direitos
-                reservados.
+                © {new Date().getFullYear()} [[ brand_name ]]. All rights
+                reserved.
               </Text>
             </Section>
           </Container>
@@ -81,4 +86,4 @@ export const Welcome = () => {
   );
 };
 
-export default Welcome;
+export default EmailVerification;

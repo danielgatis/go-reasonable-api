@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -o ./tmp/go-reasonable-api-template ."
+  cmd = "go build -o ./tmp/[[ project_slug ]] ."
   full_bin = "go tool hivemind Procfile.air"
   include_ext = ["go", "html"]
   exclude_dir = ["tmp", "vendor", "migrations", ".git", ".claude", "node_modules", "emails"]

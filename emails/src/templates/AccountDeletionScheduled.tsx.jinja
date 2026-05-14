@@ -20,56 +20,55 @@ export const AccountDeletionScheduled = () => {
   return (
     <Html>
       <Head />
-      <Preview>Sua conta ZapAgenda sera excluida em {DAYS_LEFT} dias</Preview>
+      <Preview>Your [[ brand_name ]] account will be deleted in {DAYS_LEFT} days</Preview>
       <Tailwind config={tailwindConfig}>
         <Body className="bg-gray-100 font-sans">
           <Container className="bg-white mx-auto my-10 max-w-xl rounded-lg shadow-sm">
             <Section className="px-12 py-8 border-b border-gray-200">
               <Text className="text-2xl font-bold text-brand m-0">
-                ZapAgenda
+                [[ brand_name ]]
               </Text>
             </Section>
 
             <Section className="px-12 py-8">
               <Text className="text-xl font-bold text-red-600 mb-6">
-                Exclusao de Conta Agendada
+                Account deletion scheduled
               </Text>
 
               <Text className="text-base text-gray-600 leading-7 mb-4">
-                Ola {NAME},
+                Hi {NAME},
               </Text>
 
               <Text className="text-base text-gray-600 leading-7 mb-6">
-                Recebemos sua solicitacao para excluir sua conta do ZapAgenda.
-                Sua conta e todos os dados associados serao permanentemente
-                excluidos em <strong>{SCHEDULED_AT}</strong>.
+                We received your request to delete your [[ brand_name ]]
+                account. Your account and all associated data will be
+                permanently deleted on <strong>{SCHEDULED_AT}</strong>.
               </Text>
 
               <Text className="text-base text-gray-600 leading-7 mb-6">
-                Voce tem <strong>{DAYS_LEFT} dias</strong> para cancelar esta
-                solicitacao. Para manter sua conta, basta fazer login no
-                ZapAgenda antes da data de exclusao.
+                You have <strong>{DAYS_LEFT} days</strong> to cancel this
+                request. To keep your account, just sign in to
+                [[ brand_name ]] before the deletion date.
               </Text>
 
               <Section className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                 <Text className="text-sm text-yellow-800 m-0">
-                  <strong>Importante:</strong> Esta acao e irreversivel. Apos a
-                  data de exclusao, nao sera possivel recuperar sua conta ou
-                  dados.
+                  <strong>Important:</strong> This action is irreversible.
+                  After the deletion date, your account and data cannot be
+                  recovered.
                 </Text>
               </Section>
 
               <Text className="text-base text-gray-600 leading-7 mb-4">
-                Se voce nao solicitou a exclusao da sua conta, por favor faca
-                login imediatamente para cancelar esta solicitacao e proteger
-                sua conta.
+                If you didn't request this deletion, please sign in
+                immediately to cancel the request and protect your account.
               </Text>
             </Section>
 
             <Section className="px-12 py-6 border-t border-gray-200">
               <Text className="text-xs text-gray-400 text-center m-0">
-                © {new Date().getFullYear()} ZapAgenda. Todos os direitos
-                reservados.
+                © {new Date().getFullYear()} [[ brand_name ]]. All rights
+                reserved.
               </Text>
             </Section>
           </Container>
