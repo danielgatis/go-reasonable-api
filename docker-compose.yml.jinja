@@ -19,9 +19,9 @@ services:
     volumes:
       - redis_data:/data
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: [[ project_slug ]]-mailhog
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: [[ project_slug ]]-mailpit
     ports:
       - "1025:1025"
       - "8025:8025"

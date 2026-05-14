@@ -7,7 +7,7 @@ import (
 )
 
 // ProvideEmailSender creates the appropriate EmailSender based on configuration
-// In development (default), it uses SMTP (MailHog)
+// In development (default), it uses SMTP (Mailpit)
 // In production, it should use SendGrid (configured via email.provider)
 func ProvideEmailSender(cfg *config.Config) support.EmailSender {
 	switch cfg.Email.Provider {

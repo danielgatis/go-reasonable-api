@@ -10,7 +10,7 @@ import (
 	"github.com/wneessen/go-mail"
 )
 
-// SMTPSender implements EmailSender using SMTP (for MailHog in development)
+// SMTPSender implements EmailSender using SMTP (for Mailpit in development)
 type SMTPSender struct {
 	config *config.Config
 }

@@ -120,8 +120,8 @@ type EmailConfig struct {
 	FromName       string `mapstructure:"from_name"`        // Sender name
 	SMTPHost       string `mapstructure:"smtp_host"`        // SMTP server host
 	SMTPPort       int    `mapstructure:"smtp_port"`        // SMTP server port
-	SMTPUser       string `mapstructure:"smtp_user"`        // SMTP username (optional for MailHog)
-	SMTPPassword   string `mapstructure:"smtp_password"`    // SMTP password (optional for MailHog)
+	SMTPUser       string `mapstructure:"smtp_user"`        // SMTP username (optional for Mailpit)
+	SMTPPassword   string `mapstructure:"smtp_password"`    // SMTP password (optional for Mailpit)
 	SendGridAPIKey string `mapstructure:"sendgrid_api_key"` // SendGrid API key (for production)
 }
 
@@ -181,7 +181,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("app.base_url", "http://localhost:3000")
 	viper.SetDefault("environment", "development")
 
-	// Email defaults for development (MailHog)
+	// Email defaults for development (Mailpit)
 	viper.SetDefault("email.provider", "smtp")
 	viper.SetDefault("email.from", "[[ from_email ]]")
 	viper.SetDefault("email.from_name", "[[ brand_name ]]")

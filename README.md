@@ -31,7 +31,7 @@ Every log line includes `request_id` and `user_id` (when authenticated). Trace a
 
 ### Email That Just Works
 
-Development uses **MailHog**—emails are captured locally at `http://localhost:8025`. Production uses **SendGrid**—flip one environment variable and you're sending real emails. Templates are built with **React Email**, so you write JSX components and get beautiful, tested HTML output.
+Development uses **Mailpit**—emails are captured locally at `http://localhost:8025`. Production uses **SendGrid**—flip one environment variable and you're sending real emails. Templates are built with **React Email**, so you write JSX components and get beautiful, tested HTML output.
 
 ### Authentication Ready to Ship
 
