@@ -8,6 +8,7 @@ import (
 	"go-reasonable-api/support/sentry"
 
 	"github.com/labstack/echo/v5"
+	"github.com/rotisserie/eris"
 )
 
 // ErrorResponse is the JSON structure returned for all errors.
@@ -27,6 +28,7 @@ func ErrorHandler(c *echo.Context, err error) {
 	var statusCode int
 	var response ErrorResponse
 
+	var he *echo.HTTPError
 	if ae, ok := errors.Is(err); ok {
 		statusCode = ae.StatusCode
 		response = ErrorResponse{
@@ -34,7 +36,7 @@ func ErrorHandler(c *echo.Context, err error) {
 			Message: ae.Message,
 			Details: ae.Details,
 		}
-	} else if he, ok := err.(*echo.HTTPError); ok {
+	} else if eris.As(err, &he) {
 		statusCode = he.Code
 		response = ErrorResponse{
 			Code:    "INTERNAL_ERROR",

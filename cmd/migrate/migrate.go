@@ -117,7 +117,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !eris.Is(err, migrate.ErrNoChange) {
 		return eris.Wrap(err, "migration failed")
 	}
 
@@ -131,7 +131,7 @@ func runDown(steps int) error {
 		return err
 	}
 
-	if err := m.Steps(-steps); err != nil && err != migrate.ErrNoChange {
+	if err := m.Steps(-steps); err != nil && !eris.Is(err, migrate.ErrNoChange) {
 		return eris.Wrap(err, "rollback failed")
 	}
 
@@ -146,11 +146,11 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	version, dirty, err := m.Version()
-	if err != nil && err != migrate.ErrNilVersion {
+	if err != nil && !eris.Is(err, migrate.ErrNilVersion) {
 		return eris.Wrap(err, "failed to get version")
 	}
 
-	if err == migrate.ErrNilVersion {
+	if eris.Is(err, migrate.ErrNilVersion) {
 		logger.Info().Msg("no migrations applied yet")
 		return nil
 	}

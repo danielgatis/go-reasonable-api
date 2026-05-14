@@ -148,7 +148,8 @@ func Is(err error) (*AppError, bool) {
 	if err == nil {
 		return nil, false
 	}
-	if ae, ok := err.(*AppError); ok {
+	var ae *AppError
+	if eris.As(err, &ae) {
 		return ae, true
 	}
 	return nil, false
@@ -184,7 +185,8 @@ func StackTrace(err error) string {
 	if err == nil {
 		return ""
 	}
-	if ae, ok := err.(*AppError); ok && ae.cause != nil {
+	var ae *AppError
+	if eris.As(err, &ae) && ae.cause != nil {
 		return eris.ToString(ae.cause, true)
 	}
 	return eris.ToString(err, true)
@@ -194,7 +196,8 @@ func StackTraceJSON(err error) map[string]any {
 	if err == nil {
 		return nil
 	}
-	if ae, ok := err.(*AppError); ok && ae.cause != nil {
+	var ae *AppError
+	if eris.As(err, &ae) && ae.cause != nil {
 		return eris.ToJSON(ae.cause, true)
 	}
 	return eris.ToJSON(err, true)

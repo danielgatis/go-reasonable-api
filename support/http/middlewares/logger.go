@@ -10,6 +10,7 @@ import (
 	"go-reasonable-api/support/logger"
 
 	"github.com/labstack/echo/v5"
+	"github.com/rotisserie/eris"
 	"github.com/rs/zerolog"
 )
 
@@ -34,9 +35,10 @@ func LoggerMiddleware(fallbackLogger *zerolog.Logger) echo.MiddlewareFunc {
 			status := res.Status
 			if err != nil {
 				// For errors, get status from error if available
+				var he *echo.HTTPError
 				if ae, ok := errors.Is(err); ok {
 					status = ae.StatusCode
-				} else if he, ok := err.(*echo.HTTPError); ok {
+				} else if eris.As(err, &he) {
 					status = he.Code
 				} else {
 					status = 500
