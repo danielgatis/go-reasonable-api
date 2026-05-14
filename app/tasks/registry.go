@@ -21,16 +21,20 @@ func NewRegistry(emailTask *EmailTask, cleanupTask *CleanupTask) *Registry {
 
 // RegisterHandlers registers all task handlers with the mux.
 // Add new task handlers here.
+//
+// Task type names follow the "resource:action" convention (e.g. "email:send",
+// "maintenance:cleanup"). Keep new task names lowercase and stick to that
+// shape so handlers, logs and dashboards stay consistent.
 func (r *Registry) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(TypeEmail, r.emailTask.Handle)
-	mux.HandleFunc(TypeCleanup, r.cleanupTask.Handle)
+	mux.HandleFunc(TypeMaintenance, r.cleanupTask.Handle)
 }
 
 // RegisterScheduledTasks registers all periodic tasks with the scheduler.
 // Add new scheduled tasks here.
 func (r *Registry) RegisterScheduledTasks(scheduler *asynq.Scheduler) error {
 	// Cleanup expired tokens every hour
-	if _, err := scheduler.Register("@every 1h", asynq.NewTask(TypeCleanup, nil)); err != nil {
+	if _, err := scheduler.Register("@every 1h", asynq.NewTask(TypeMaintenance, nil)); err != nil {
 		return eris.Wrap(err, "failed to register cleanup task")
 	}
 

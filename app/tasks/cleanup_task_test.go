@@ -94,7 +94,7 @@ func TestCleanupTask_Handle(t *testing.T) {
 			task := tasks.NewCleanupTask(newTestLogger(), mockAuthRepo, mockPwRepo, mockEmailRepo, mockUserRepo)
 
 			// Create an empty asynq task (periodic tasks have empty payload)
-			asynqTask := asynq.NewTask(tasks.TypeCleanup, nil)
+			asynqTask := asynq.NewTask(tasks.TypeMaintenance, nil)
 			err := task.Handle(ctx, asynqTask)
 
 			if tt.expectedErr {

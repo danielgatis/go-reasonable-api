@@ -6,8 +6,11 @@
 //
 // # Task Types
 //
+// Task type names follow the "resource:action" convention (lowercase).
+//
 //   - TypeEmail ("email:send"): Generic email sending with template rendering
-//   - TypeCleanup ("cleanup:expired"): Periodic cleanup of expired tokens
+//   - TypeMaintenance ("maintenance:cleanup"): Periodic cleanup of expired
+//     tokens and finalisation of scheduled account deletions
 //
 // # Lifecycle
 //

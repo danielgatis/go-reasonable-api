@@ -187,6 +187,15 @@ See [docs/architecture.md](docs/architecture.md) for:
 3. Register in `app/tasks/registry.go`
 4. Enqueue from services via `TaskClient.EnqueueCtx()`
 
+Task type names follow the **`resource:action`** convention, all lowercase:
+
+| Task | Type string |
+|------|-------------|
+| Email sending | `email:send` |
+| Periodic maintenance cleanup | `maintenance:cleanup` |
+
+Pick names like `user:archive`, `report:generate`, `webhook:deliver`. Keep the resource on the left and the verb on the right — handler registration, logs and Asynq's dashboards all surface this string, so consistency pays off.
+
 ### Adding a New Migration
 
 ```bash

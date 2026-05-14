@@ -12,7 +12,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const TypeCleanup = "cleanup:tokens"
+const TypeMaintenance = "maintenance:cleanup"
 
 // CleanupTask handles periodic cleanup of expired tokens and scheduled account deletions
 type CleanupTask struct {
@@ -49,7 +49,7 @@ func (t *CleanupTask) Handle(ctx context.Context, task *asynq.Task) error {
 	ctx = meta.LoggerContext(ctx, t.logger)
 	log := logger.Ctx(ctx)
 
-	log.Info().Str("task", TypeCleanup).Msg("starting token cleanup")
+	log.Info().Str("task", TypeMaintenance).Msg("starting token cleanup")
 
 	// Cleanup auth tokens
 	authDeleted, err := t.authTokenRepo.DeleteExpiredOrRevoked(ctx)
