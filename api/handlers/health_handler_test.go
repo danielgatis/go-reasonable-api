@@ -1,15 +1,15 @@
 package handlers_test
 
 import (
-	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"go-reasonable-api/api/handlers"
 
-	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v5"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,14 +27,14 @@ func (m *mockRedisPinger) Ping() error {
 func TestHealthHandler_Health(t *testing.T) {
 	tests := []struct {
 		name           string
-		setupDB        func(sqlmock.Sqlmock)
+		setupDB        func(pgxmock.PgxPoolIface)
 		redisError     error
 		expectedStatus int
 		expectedHealth string
 	}{
 		{
 			name: "returns healthy when all dependencies are up",
-			setupDB: func(mock sqlmock.Sqlmock) {
+			setupDB: func(mock pgxmock.PgxPoolIface) {
 				mock.ExpectPing()
 			},
 			redisError:     nil,
@@ -43,8 +43,8 @@ func TestHealthHandler_Health(t *testing.T) {
 		},
 		{
 			name: "returns unhealthy when database is down",
-			setupDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectPing().WillReturnError(sql.ErrConnDone)
+			setupDB: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectPing().WillReturnError(pgx.ErrTxClosed)
 			},
 			redisError:     nil,
 			expectedStatus: http.StatusServiceUnavailable,
@@ -52,7 +52,7 @@ func TestHealthHandler_Health(t *testing.T) {
 		},
 		{
 			name: "returns unhealthy when redis is down",
-			setupDB: func(mock sqlmock.Sqlmock) {
+			setupDB: func(mock pgxmock.PgxPoolIface) {
 				mock.ExpectPing()
 			},
 			redisError:     eris.New("redis connection refused"),
@@ -61,8 +61,8 @@ func TestHealthHandler_Health(t *testing.T) {
 		},
 		{
 			name: "returns unhealthy when both are down",
-			setupDB: func(mock sqlmock.Sqlmock) {
-				mock.ExpectPing().WillReturnError(sql.ErrConnDone)
+			setupDB: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectPing().WillReturnError(pgx.ErrTxClosed)
 			},
 			redisError:     eris.New("redis connection refused"),
 			expectedStatus: http.StatusServiceUnavailable,
@@ -72,31 +72,27 @@ func TestHealthHandler_Health(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Setup
 			e := echo.New()
-			db, mock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
+			mockPool, err := pgxmock.NewPool()
 			require.NoError(t, err)
-			defer func() { _ = db.Close() }()
+			defer mockPool.Close()
 
-			tt.setupDB(mock)
+			tt.setupDB(mockPool)
 
 			redisPinger := &mockRedisPinger{err: tt.redisError}
-			handler := handlers.NewHealthHandler(db, redisPinger)
+			handler := handlers.NewHealthHandler(mockPool, redisPinger)
 
 			req := httptest.NewRequest(http.MethodGet, "/health", nil)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
-			// Execute
 			err = handler.Health(c)
 
-			// Assert
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, rec.Code)
 			assert.Contains(t, rec.Body.String(), tt.expectedHealth)
 
-			// Verify all DB expectations were met
-			err = mock.ExpectationsWereMet()
+			err = mockPool.ExpectationsWereMet()
 			assert.NoError(t, err)
 		})
 	}

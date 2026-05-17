@@ -8,11 +8,16 @@ import (
 	"go-reasonable-api/support/worker"
 
 	"github.com/hibiken/asynq"
+	"github.com/rotisserie/eris"
 	"github.com/rs/zerolog"
 )
 
 func ProvideEmailTask(logger *zerolog.Logger, emailSender support.EmailSender) (*tasks.EmailTask, error) {
-	return tasks.NewEmailTask(logger, emailSender)
+	task, err := tasks.NewEmailTask(logger, emailSender)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to create email task")
+	}
+	return task, nil
 }
 
 func ProvideCleanupTask(

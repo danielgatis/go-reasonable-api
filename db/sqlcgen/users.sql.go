@@ -22,7 +22,7 @@ type CancelUserDeletionParams struct {
 }
 
 func (q *Queries) CancelUserDeletion(ctx context.Context, arg CancelUserDeletionParams) error {
-	_, err := q.db.ExecContext(ctx, cancelUserDeletion, arg.UpdatedAt, arg.ID)
+	_, err := q.db.Exec(ctx, cancelUserDeletion, arg.UpdatedAt, arg.ID)
 	return err
 }
 
@@ -42,7 +42,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	row := q.db.QueryRow(ctx, createUser,
 		arg.ID,
 		arg.Name,
 		arg.Email,
@@ -69,11 +69,11 @@ DELETE FROM users WHERE deletion_scheduled_at IS NOT NULL AND deletion_scheduled
 `
 
 func (q *Queries) DeleteScheduledUsers(ctx context.Context, deletionScheduledAt *time.Time) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteScheduledUsers, deletionScheduledAt)
+	result, err := q.db.Exec(ctx, deleteScheduledUsers, deletionScheduledAt)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 const emailExists = `-- name: EmailExists :one
@@ -81,7 +81,7 @@ SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)
 `
 
 func (q *Queries) EmailExists(ctx context.Context, email string) (bool, error) {
-	row := q.db.QueryRowContext(ctx, emailExists, email)
+	row := q.db.QueryRow(ctx, emailExists, email)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -92,7 +92,7 @@ SELECT id, name, email, password_hash, email_verified_at, deletion_scheduled_at,
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -112,7 +112,7 @@ SELECT id, name, email, password_hash, email_verified_at, deletion_scheduled_at,
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -138,7 +138,7 @@ type MarkUserEmailVerifiedParams struct {
 }
 
 func (q *Queries) MarkUserEmailVerified(ctx context.Context, arg MarkUserEmailVerifiedParams) error {
-	_, err := q.db.ExecContext(ctx, markUserEmailVerified, arg.EmailVerifiedAt, arg.UpdatedAt, arg.ID)
+	_, err := q.db.Exec(ctx, markUserEmailVerified, arg.EmailVerifiedAt, arg.UpdatedAt, arg.ID)
 	return err
 }
 
@@ -153,7 +153,7 @@ type ScheduleUserDeletionParams struct {
 }
 
 func (q *Queries) ScheduleUserDeletion(ctx context.Context, arg ScheduleUserDeletionParams) error {
-	_, err := q.db.ExecContext(ctx, scheduleUserDeletion, arg.DeletionScheduledAt, arg.UpdatedAt, arg.ID)
+	_, err := q.db.Exec(ctx, scheduleUserDeletion, arg.DeletionScheduledAt, arg.UpdatedAt, arg.ID)
 	return err
 }
 
@@ -168,6 +168,6 @@ type UpdateUserPasswordParams struct {
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
-	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.PasswordHash, arg.UpdatedAt, arg.ID)
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.PasswordHash, arg.UpdatedAt, arg.ID)
 	return err
 }

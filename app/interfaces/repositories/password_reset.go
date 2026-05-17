@@ -2,12 +2,12 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // PasswordResetRepository manages password reset token persistence.
@@ -16,7 +16,7 @@ import (
 // InvalidateAllForUser marks all pending resets as used when a new
 // reset is requested or password is changed.
 type PasswordResetRepository interface {
-	WithTx(tx *sql.Tx) PasswordResetRepository
+	WithTx(tx pgx.Tx) PasswordResetRepository
 
 	Create(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt time.Time) (*sqlcgen.PasswordReset, error)
 	GetByTokenHash(ctx context.Context, tokenHash string) (*sqlcgen.PasswordReset, error)

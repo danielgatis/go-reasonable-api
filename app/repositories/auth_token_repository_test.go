@@ -2,19 +2,19 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAuthTokenRepository(t *testing.T) {
 	tx := setupTest(t)
-	userRepo := NewUserRepository(testDB).WithTx(tx)
-	repo := NewAuthTokenRepository(testDB).WithTx(tx)
+	userRepo := NewUserRepository(testPool).WithTx(tx)
+	repo := NewAuthTokenRepository(testPool).WithTx(tx)
 	ctx := context.Background()
 
 	createUser := func(t *testing.T) uuid.UUID {
@@ -50,7 +50,7 @@ func TestAuthTokenRepository(t *testing.T) {
 
 	t.Run("GetByHash_NotFound", func(t *testing.T) {
 		token, err := repo.GetByHash(ctx, "nonexistenthash")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		assert.Nil(t, token)
 	})
 
@@ -125,8 +125,8 @@ func TestAuthTokenRepository(t *testing.T) {
 
 		// Expired and revoked should be deleted
 		_, err = repo.GetByHash(ctx, "expired")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		_, err = repo.GetByHash(ctx, "revoked")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 	})
 }

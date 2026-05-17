@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/app/errors"
@@ -15,6 +14,7 @@ import (
 	"go-reasonable-api/support/db"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/rotisserie/eris"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -52,13 +52,17 @@ func (s *UserService) Create(ctx context.Context, name, email, password string) 
 		return nil, eris.Wrap(err, "failed to generate password hash")
 	}
 
-	return s.userRepo.Create(ctx, name, email, string(passwordHash))
+	user, err := s.userRepo.Create(ctx, name, email, string(passwordHash))
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to create user")
+	}
+	return user, nil
 }
 
 func (s *UserService) GetByID(ctx context.Context, id uuid.UUID) (*sqlcgen.User, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		if eris.Is(err, sql.ErrNoRows) {
+		if eris.Is(err, pgx.ErrNoRows) {
 			return nil, errors.ErrUserNotFound
 		}
 		return nil, eris.Wrap(err, "failed to get user by ID")
@@ -70,7 +74,7 @@ func (s *UserService) GetByID(ctx context.Context, id uuid.UUID) (*sqlcgen.User,
 func (s *UserService) GetByEmail(ctx context.Context, email string) (*sqlcgen.User, error) {
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		if eris.Is(err, sql.ErrNoRows) {
+		if eris.Is(err, pgx.ErrNoRows) {
 			return nil, errors.ErrUserNotFound
 		}
 		return nil, eris.Wrap(err, "failed to get user by email")
@@ -85,14 +89,14 @@ func (s *UserService) ScheduleDeletion(ctx context.Context, userID uuid.UUID) er
 	var userEmail, userName string
 
 	// Run all database operations in a transaction to avoid TOCTOU race condition
-	err := s.txManager.RunInTx(ctx, func(tx *sql.Tx) error {
+	err := s.txManager.RunInTx(ctx, func(tx pgx.Tx) error {
 		userRepoTx := s.userRepo.WithTx(tx)
 		authTokenRepoTx := s.authTokenRepo.WithTx(tx)
 
 		// Get user inside transaction to ensure consistent read
 		user, err := userRepoTx.GetByID(ctx, userID)
 		if err != nil {
-			if eris.Is(err, sql.ErrNoRows) {
+			if eris.Is(err, pgx.ErrNoRows) {
 				return errors.ErrUserNotFound
 			}
 			return eris.Wrap(err, "failed to get user by ID")

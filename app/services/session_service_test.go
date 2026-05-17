@@ -2,7 +2,6 @@ package services_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"go-reasonable-api/support/config"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -65,7 +65,7 @@ func TestSessionService_Create(t *testing.T) {
 			email:    "notfound@example.com",
 			password: password,
 			setupMock: func(userRepo *mocks.MockUserRepository, authRepo *mocks.MockAuthTokenRepository) {
-				userRepo.EXPECT().GetByEmail(mock.Anything, "notfound@example.com").Return(nil, sql.ErrNoRows)
+				userRepo.EXPECT().GetByEmail(mock.Anything, "notfound@example.com").Return(nil, pgx.ErrNoRows)
 			},
 			expectUser:  false,
 			expectToken: false,
@@ -138,7 +138,7 @@ func TestSessionService_ValidateToken(t *testing.T) {
 			name:  "returns error when token not found",
 			token: "invalid-token",
 			setupMock: func(authRepo *mocks.MockAuthTokenRepository) {
-				authRepo.EXPECT().GetByHash(mock.Anything, mock.AnythingOfType("string")).Return(nil, sql.ErrNoRows)
+				authRepo.EXPECT().GetByHash(mock.Anything, mock.AnythingOfType("string")).Return(nil, pgx.ErrNoRows)
 			},
 			expectedErr: errors.ErrInvalidToken,
 		},
@@ -212,9 +212,9 @@ func TestSessionService_Delete(t *testing.T) {
 			name:  "returns error when revoke fails",
 			token: "valid-token",
 			setupMock: func(authRepo *mocks.MockAuthTokenRepository) {
-				authRepo.EXPECT().RevokeByHash(mock.Anything, mock.AnythingOfType("string")).Return(sql.ErrConnDone)
+				authRepo.EXPECT().RevokeByHash(mock.Anything, mock.AnythingOfType("string")).Return(pgx.ErrTxClosed)
 			},
-			expectedErr: sql.ErrConnDone,
+			expectedErr: pgx.ErrTxClosed,
 		},
 	}
 

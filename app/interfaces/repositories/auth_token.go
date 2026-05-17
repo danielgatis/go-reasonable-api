@@ -2,12 +2,12 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // AuthTokenRepository manages authentication token persistence.
@@ -19,7 +19,7 @@ import (
 // is used when password changes to invalidate all sessions.
 // DeleteExpiredOrRevoked permanently removes old records.
 type AuthTokenRepository interface {
-	WithTx(tx *sql.Tx) AuthTokenRepository
+	WithTx(tx pgx.Tx) AuthTokenRepository
 
 	Create(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt time.Time) (*sqlcgen.AuthToken, error)
 	GetByHash(ctx context.Context, tokenHash string) (*sqlcgen.AuthToken, error)

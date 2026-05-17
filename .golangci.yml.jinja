@@ -1,0 +1,51 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - unconvert
+    - unparam
+    - depguard
+    - forbidigo
+    - wrapcheck
+  settings:
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1000" # Disable package comment requirement
+        - "-ST1001" # Disable dot imports are discouraged
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: "errors"
+              desc: "use github.com/rotisserie/eris instead of standard library errors"
+    forbidigo:
+      forbid:
+        - pattern: '^fmt\.Errorf\('
+          pkg: '^fmt$'
+          msg: "use eris.Errorf instead of fmt.Errorf"
+      analyze-types: true
+    wrapcheck:
+      # Regex patterns matched against the full sig.
+      ignore-sig-regexps:
+        - 'eris\.(New|Errorf|Wrap|Wrapf)\('
+        - 'errors\.(New|Unwrap|Join)\('
+        - 'eris\.Cause\('
+        - '\.(JSON|JSONBlob|String|HTML|NoContent|Redirect|File|Blob|Bind)\('
+        - '\.RunInTx\('
+      ignore-package-globs:
+        - [[ module_path ]]/app/errors
+        - [[ module_path ]]/support/errors
+        - [[ module_path ]]/support/http/bind
+  exclusions:
+    rules:
+      # Tests use the standard mock pattern of returning sentinel errors that
+      # are then asserted on; wrapping them would defeat the purpose.
+      - path: _test\.go
+        linters:
+          - wrapcheck

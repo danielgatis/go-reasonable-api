@@ -2,20 +2,21 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"os"
 	"testing"
 
 	"go-reasonable-api/db/migrations"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	migratepgx "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-var testDB *sql.DB
+var testPool *pgxpool.Pool
 var testContainer *tcpostgres.PostgresContainer
 
 func TestMain(m *testing.M) {
@@ -38,26 +39,34 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	db, err := sql.Open("postgres", connStr)
+	pool, err := pgxpool.New(ctx, connStr)
 	if err != nil {
 		panic(err)
 	}
-	testDB = db
+	testPool = pool
 
-	if err := runMigrations(db); err != nil {
+	if err := runMigrations(connStr); err != nil {
 		panic(err)
 	}
 
 	code := m.Run()
 
-	_ = db.Close()
+	pool.Close()
 	_ = container.Terminate(ctx)
 
 	os.Exit(code)
 }
 
-func runMigrations(db *sql.DB) error {
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+func runMigrations(connStr string) error {
+	connConfig, err := pgx.ParseConfig(connStr)
+	if err != nil {
+		return err
+	}
+
+	db := stdlib.OpenDB(*connConfig)
+	defer func() { _ = db.Close() }()
+
+	driver, err := migratepgx.WithInstance(db, &migratepgx.Config{})
 	if err != nil {
 		return err
 	}
@@ -67,7 +76,7 @@ func runMigrations(db *sql.DB) error {
 		return err
 	}
 
-	m, err := migrate.NewWithInstance("iofs", source, "postgres", driver)
+	m, err := migrate.NewWithInstance("iofs", source, "pgx5", driver)
 	if err != nil {
 		return err
 	}
@@ -79,14 +88,15 @@ func runMigrations(db *sql.DB) error {
 	return nil
 }
 
-func setupTest(t *testing.T) *sql.Tx {
-	tx, err := testDB.Begin()
+func setupTest(t *testing.T) pgx.Tx {
+	ctx := context.Background()
+	tx, err := testPool.Begin(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Cleanup(func() {
-		_ = tx.Rollback()
+		_ = tx.Rollback(ctx)
 	})
 
 	return tx

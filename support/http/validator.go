@@ -6,6 +6,7 @@ import (
 	"go-reasonable-api/support/errors"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/rotisserie/eris"
 )
 
 type Validator struct {
@@ -20,7 +21,7 @@ func (v *Validator) Validate(i any) error {
 	if err := v.validator.Struct(i); err != nil {
 		validationErrors, ok := err.(validator.ValidationErrors)
 		if !ok {
-			return err
+			return eris.Wrap(err, "failed to validate struct")
 		}
 
 		details := make(map[string]any)

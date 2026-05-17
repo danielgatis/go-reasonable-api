@@ -1,11 +1,11 @@
 package providers
 
 import (
-	"database/sql"
-
 	"go-reasonable-api/support/db"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ProvideTxManager(database *sql.DB) *db.TxManager {
-	return db.NewTxManager(database)
+func ProvideTxManager(pool *pgxpool.Pool) *db.TxManager {
+	return db.NewTxManager(pool)
 }

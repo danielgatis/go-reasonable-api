@@ -1,7 +1,6 @@
 package migrate
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,9 +11,10 @@ import (
 	"go-reasonable-api/support/logger"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	migratepgx "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/rotisserie/eris"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ func NewCommand() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
-				return err
+				return eris.Wrap(err, "failed to load config")
 			}
 			logger.Init(cfg)
 			return nil
@@ -88,12 +88,14 @@ func getMigrator() (*migrate.Migrate, error) {
 		return nil, eris.Wrap(err, "failed to load config")
 	}
 
-	db, err := sql.Open("postgres", cfg.Database.URL)
+	connConfig, err := pgx.ParseConfig(cfg.Database.URL)
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to connect to database")
+		return nil, eris.Wrap(err, "failed to parse database url")
 	}
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	db := stdlib.OpenDB(*connConfig)
+
+	driver, err := migratepgx.WithInstance(db, &migratepgx.Config{})
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to create driver")
 	}
@@ -103,7 +105,7 @@ func getMigrator() (*migrate.Migrate, error) {
 		return nil, eris.Wrap(err, "failed to create source")
 	}
 
-	m, err := migrate.NewWithInstance("iofs", source, "postgres", driver)
+	m, err := migrate.NewWithInstance("iofs", source, "pgx5", driver)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to create migrator")
 	}

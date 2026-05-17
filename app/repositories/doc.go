@@ -7,15 +7,17 @@
 //
 // Repositories implement WithTx to participate in transactions:
 //
-//	func (r *UserRepository) WithTx(tx *sql.Tx) repositories.UserRepository {
+//	func (r *UserRepository) WithTx(tx pgx.Tx) repositories.UserRepository {
 //	    return &UserRepository{queries: r.queries.WithTx(tx)}
 //	}
 //
 // The returned repository uses the transaction; the original is unchanged.
 // This allows composing multiple repository operations atomically.
 //
-// # Null Handling
+// # Error Propagation
 //
-// Repositories return nil (not an error) when a record is not found.
-// Callers must check for nil before using the result.
+// Repositories wrap pgx/sqlc errors with eris.Wrap before returning, so the
+// stack trace captures the repository line. Sentinels (pgx.ErrNoRows) remain
+// detectable via eris.Is through wraps, so callers can still branch on
+// "not found" cases.
 package repositories

@@ -2,19 +2,19 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPasswordResetRepository(t *testing.T) {
 	tx := setupTest(t)
-	userRepo := NewUserRepository(testDB).WithTx(tx)
-	repo := NewPasswordResetRepository(testDB).WithTx(tx)
+	userRepo := NewUserRepository(testPool).WithTx(tx)
+	repo := NewPasswordResetRepository(testPool).WithTx(tx)
 	ctx := context.Background()
 
 	createUser := func(t *testing.T) uuid.UUID {
@@ -51,7 +51,7 @@ func TestPasswordResetRepository(t *testing.T) {
 
 	t.Run("GetByTokenHash_NotFound", func(t *testing.T) {
 		reset, err := repo.GetByTokenHash(ctx, "nonexistenthash")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		assert.Nil(t, reset)
 	})
 
@@ -113,8 +113,8 @@ func TestPasswordResetRepository(t *testing.T) {
 
 		// Expired and used should be deleted
 		_, err = repo.GetByTokenHash(ctx, "expiredreset")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		_, err = repo.GetByTokenHash(ctx, "usedreset")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 	})
 }

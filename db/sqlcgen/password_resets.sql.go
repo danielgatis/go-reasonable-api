@@ -26,7 +26,7 @@ type CreatePasswordResetParams struct {
 }
 
 func (q *Queries) CreatePasswordReset(ctx context.Context, arg CreatePasswordResetParams) error {
-	_, err := q.db.ExecContext(ctx, createPasswordReset,
+	_, err := q.db.Exec(ctx, createPasswordReset,
 		arg.ID,
 		arg.UserID,
 		arg.TokenHash,
@@ -41,11 +41,11 @@ DELETE FROM password_resets WHERE expires_at < $1 OR used_at IS NOT NULL
 `
 
 func (q *Queries) DeleteExpiredOrUsedPasswordResets(ctx context.Context, expiresAt time.Time) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteExpiredOrUsedPasswordResets, expiresAt)
+	result, err := q.db.Exec(ctx, deleteExpiredOrUsedPasswordResets, expiresAt)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 const getPasswordResetByTokenHash = `-- name: GetPasswordResetByTokenHash :one
@@ -53,7 +53,7 @@ SELECT id, user_id, token_hash, expires_at, used_at, created_at FROM password_re
 `
 
 func (q *Queries) GetPasswordResetByTokenHash(ctx context.Context, tokenHash string) (PasswordReset, error) {
-	row := q.db.QueryRowContext(ctx, getPasswordResetByTokenHash, tokenHash)
+	row := q.db.QueryRow(ctx, getPasswordResetByTokenHash, tokenHash)
 	var i PasswordReset
 	err := row.Scan(
 		&i.ID,
@@ -76,7 +76,7 @@ type InvalidateAllPasswordResetsForUserParams struct {
 }
 
 func (q *Queries) InvalidateAllPasswordResetsForUser(ctx context.Context, arg InvalidateAllPasswordResetsForUserParams) error {
-	_, err := q.db.ExecContext(ctx, invalidateAllPasswordResetsForUser, arg.UsedAt, arg.UserID)
+	_, err := q.db.Exec(ctx, invalidateAllPasswordResetsForUser, arg.UsedAt, arg.UserID)
 	return err
 }
 
@@ -90,6 +90,6 @@ type MarkPasswordResetUsedParams struct {
 }
 
 func (q *Queries) MarkPasswordResetUsed(ctx context.Context, arg MarkPasswordResetUsedParams) error {
-	_, err := q.db.ExecContext(ctx, markPasswordResetUsed, arg.UsedAt, arg.ID)
+	_, err := q.db.Exec(ctx, markPasswordResetUsed, arg.UsedAt, arg.ID)
 	return err
 }

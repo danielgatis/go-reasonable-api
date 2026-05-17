@@ -2,31 +2,29 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/app/interfaces/repositories"
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
 type UserRepository struct {
-	db      *sql.DB
 	queries *sqlcgen.Queries
 }
 
-func NewUserRepository(db *sql.DB) *UserRepository {
+func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{
-		db:      db,
-		queries: sqlcgen.New(db),
+		queries: sqlcgen.New(pool),
 	}
 }
 
-func (r *UserRepository) WithTx(tx *sql.Tx) repositories.UserRepository {
+func (r *UserRepository) WithTx(tx pgx.Tx) repositories.UserRepository {
 	return &UserRepository{
-		db:      r.db,
 		queries: sqlcgen.New(tx),
 	}
 }
@@ -68,12 +66,11 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*sqlcgen
 }
 
 func (r *UserRepository) UpdatePassword(ctx context.Context, userID uuid.UUID, passwordHash string) error {
-	err := r.queries.UpdateUserPassword(ctx, sqlcgen.UpdateUserPasswordParams{
+	if err := r.queries.UpdateUserPassword(ctx, sqlcgen.UpdateUserPasswordParams{
 		PasswordHash: passwordHash,
 		UpdatedAt:    time.Now().UTC(),
 		ID:           userID,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to update user password")
 	}
 	return nil
@@ -81,12 +78,11 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, userID uuid.UUID, p
 
 func (r *UserRepository) MarkEmailVerified(ctx context.Context, userID uuid.UUID) error {
 	now := time.Now().UTC()
-	err := r.queries.MarkUserEmailVerified(ctx, sqlcgen.MarkUserEmailVerifiedParams{
+	if err := r.queries.MarkUserEmailVerified(ctx, sqlcgen.MarkUserEmailVerifiedParams{
 		EmailVerifiedAt: &now,
 		UpdatedAt:       now,
 		ID:              userID,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to mark email as verified")
 	}
 	return nil
@@ -101,23 +97,21 @@ func (r *UserRepository) EmailExists(ctx context.Context, email string) (bool, e
 }
 
 func (r *UserRepository) ScheduleDeletion(ctx context.Context, userID uuid.UUID, scheduledAt time.Time) error {
-	err := r.queries.ScheduleUserDeletion(ctx, sqlcgen.ScheduleUserDeletionParams{
+	if err := r.queries.ScheduleUserDeletion(ctx, sqlcgen.ScheduleUserDeletionParams{
 		DeletionScheduledAt: &scheduledAt,
 		UpdatedAt:           time.Now().UTC(),
 		ID:                  userID,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to schedule user deletion")
 	}
 	return nil
 }
 
 func (r *UserRepository) CancelDeletion(ctx context.Context, userID uuid.UUID) error {
-	err := r.queries.CancelUserDeletion(ctx, sqlcgen.CancelUserDeletionParams{
+	if err := r.queries.CancelUserDeletion(ctx, sqlcgen.CancelUserDeletionParams{
 		UpdatedAt: time.Now().UTC(),
 		ID:        userID,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to cancel user deletion")
 	}
 	return nil

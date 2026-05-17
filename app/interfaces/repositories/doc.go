@@ -5,11 +5,11 @@
 //
 // # Transaction Support
 //
-// All repositories implement WithTx(tx *sql.Tx) to participate in
+// All repositories implement WithTx(tx pgx.Tx) to participate in
 // transactions managed by support/db.TxManager. The returned repository
 // uses the transaction connection; the original instance is unchanged.
 //
-//	err := txManager.RunInTx(ctx, func(tx *sql.Tx) error {
+//	err := txManager.RunInTx(ctx, func(tx pgx.Tx) error {
 //	    userRepo := r.userRepo.WithTx(tx)
 //	    tokenRepo := r.tokenRepo.WithTx(tx)
 //	    // operations on both repos share the transaction

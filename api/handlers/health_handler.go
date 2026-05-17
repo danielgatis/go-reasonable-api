@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 	"time"
 
@@ -15,13 +14,19 @@ type RedisPinger interface {
 	Ping() error
 }
 
+// DBPinger is an interface for checking database connectivity.
+// This is implemented by *pgxpool.Pool and allows for mocking in tests.
+type DBPinger interface {
+	Ping(ctx context.Context) error
+}
+
 // HealthHandler provides liveness and readiness probes.
 type HealthHandler struct {
-	db          *sql.DB
+	db          DBPinger
 	redisPinger RedisPinger
 }
 
-func NewHealthHandler(db *sql.DB, redisPinger RedisPinger) *HealthHandler {
+func NewHealthHandler(db DBPinger, redisPinger RedisPinger) *HealthHandler {
 	return &HealthHandler{
 		db:          db,
 		redisPinger: redisPinger,
@@ -82,7 +87,7 @@ func (h *HealthHandler) Health(c *echo.Context) error {
 func (h *HealthHandler) checkDatabase(ctx context.Context) HealthStatus {
 	start := time.Now()
 
-	if err := h.db.PingContext(ctx); err != nil {
+	if err := h.db.Ping(ctx); err != nil {
 		return HealthStatus{
 			Status: "error",
 			Error:  err.Error(),

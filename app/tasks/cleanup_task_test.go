@@ -2,13 +2,13 @@ package tasks_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	mocks "go-reasonable-api/app/mocks/repositories"
 	"go-reasonable-api/app/tasks"
 
 	"github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -40,7 +40,7 @@ func TestCleanupTask_Handle(t *testing.T) {
 		{
 			name: "returns error when auth token cleanup fails",
 			setupMock: func(authRepo *mocks.MockAuthTokenRepository, pwRepo *mocks.MockPasswordResetRepository, emailRepo *mocks.MockEmailVerificationRepository, userRepo *mocks.MockUserRepository) {
-				authRepo.EXPECT().DeleteExpiredOrRevoked(mock.Anything).Return(int64(0), sql.ErrConnDone)
+				authRepo.EXPECT().DeleteExpiredOrRevoked(mock.Anything).Return(int64(0), pgx.ErrTxClosed)
 			},
 			expectedErr: true,
 		},
@@ -48,7 +48,7 @@ func TestCleanupTask_Handle(t *testing.T) {
 			name: "returns error when password reset cleanup fails",
 			setupMock: func(authRepo *mocks.MockAuthTokenRepository, pwRepo *mocks.MockPasswordResetRepository, emailRepo *mocks.MockEmailVerificationRepository, userRepo *mocks.MockUserRepository) {
 				authRepo.EXPECT().DeleteExpiredOrRevoked(mock.Anything).Return(int64(5), nil)
-				pwRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(0), sql.ErrConnDone)
+				pwRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(0), pgx.ErrTxClosed)
 			},
 			expectedErr: true,
 		},
@@ -57,7 +57,7 @@ func TestCleanupTask_Handle(t *testing.T) {
 			setupMock: func(authRepo *mocks.MockAuthTokenRepository, pwRepo *mocks.MockPasswordResetRepository, emailRepo *mocks.MockEmailVerificationRepository, userRepo *mocks.MockUserRepository) {
 				authRepo.EXPECT().DeleteExpiredOrRevoked(mock.Anything).Return(int64(5), nil)
 				pwRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(3), nil)
-				emailRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(0), sql.ErrConnDone)
+				emailRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(0), pgx.ErrTxClosed)
 			},
 			expectedErr: true,
 		},
@@ -67,7 +67,7 @@ func TestCleanupTask_Handle(t *testing.T) {
 				authRepo.EXPECT().DeleteExpiredOrRevoked(mock.Anything).Return(int64(5), nil)
 				pwRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(3), nil)
 				emailRepo.EXPECT().DeleteExpiredOrUsed(mock.Anything).Return(int64(2), nil)
-				userRepo.EXPECT().DeleteScheduledUsers(mock.Anything).Return(int64(0), sql.ErrConnDone)
+				userRepo.EXPECT().DeleteScheduledUsers(mock.Anything).Return(int64(0), pgx.ErrTxClosed)
 			},
 			expectedErr: true,
 		},

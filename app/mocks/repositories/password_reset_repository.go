@@ -6,12 +6,12 @@ package mocks
 
 import (
 	"context"
-	"database/sql"
 	"go-reasonable-api/app/interfaces/repositories"
 	"go-reasonable-api/db/sqlcgen"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -365,7 +365,7 @@ func (_c *MockPasswordResetRepository_MarkUsed_Call) RunAndReturn(run func(ctx c
 }
 
 // WithTx provides a mock function for the type MockPasswordResetRepository
-func (_mock *MockPasswordResetRepository) WithTx(tx *sql.Tx) repositories.PasswordResetRepository {
+func (_mock *MockPasswordResetRepository) WithTx(tx pgx.Tx) repositories.PasswordResetRepository {
 	ret := _mock.Called(tx)
 
 	if len(ret) == 0 {
@@ -373,7 +373,7 @@ func (_mock *MockPasswordResetRepository) WithTx(tx *sql.Tx) repositories.Passwo
 	}
 
 	var r0 repositories.PasswordResetRepository
-	if returnFunc, ok := ret.Get(0).(func(*sql.Tx) repositories.PasswordResetRepository); ok {
+	if returnFunc, ok := ret.Get(0).(func(pgx.Tx) repositories.PasswordResetRepository); ok {
 		r0 = returnFunc(tx)
 	} else {
 		if ret.Get(0) != nil {
@@ -389,16 +389,16 @@ type MockPasswordResetRepository_WithTx_Call struct {
 }
 
 // WithTx is a helper method to define mock.On call
-//   - tx *sql.Tx
+//   - tx pgx.Tx
 func (_e *MockPasswordResetRepository_Expecter) WithTx(tx interface{}) *MockPasswordResetRepository_WithTx_Call {
 	return &MockPasswordResetRepository_WithTx_Call{Call: _e.mock.On("WithTx", tx)}
 }
 
-func (_c *MockPasswordResetRepository_WithTx_Call) Run(run func(tx *sql.Tx)) *MockPasswordResetRepository_WithTx_Call {
+func (_c *MockPasswordResetRepository_WithTx_Call) Run(run func(tx pgx.Tx)) *MockPasswordResetRepository_WithTx_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *sql.Tx
+		var arg0 pgx.Tx
 		if args[0] != nil {
-			arg0 = args[0].(*sql.Tx)
+			arg0 = args[0].(pgx.Tx)
 		}
 		run(
 			arg0,
@@ -412,7 +412,7 @@ func (_c *MockPasswordResetRepository_WithTx_Call) Return(passwordResetRepositor
 	return _c
 }
 
-func (_c *MockPasswordResetRepository_WithTx_Call) RunAndReturn(run func(tx *sql.Tx) repositories.PasswordResetRepository) *MockPasswordResetRepository_WithTx_Call {
+func (_c *MockPasswordResetRepository_WithTx_Call) RunAndReturn(run func(tx pgx.Tx) repositories.PasswordResetRepository) *MockPasswordResetRepository_WithTx_Call {
 	_c.Call.Return(run)
 	return _c
 }

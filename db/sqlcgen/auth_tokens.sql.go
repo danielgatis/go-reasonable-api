@@ -26,7 +26,7 @@ type CreateAuthTokenParams struct {
 }
 
 func (q *Queries) CreateAuthToken(ctx context.Context, arg CreateAuthTokenParams) error {
-	_, err := q.db.ExecContext(ctx, createAuthToken,
+	_, err := q.db.Exec(ctx, createAuthToken,
 		arg.ID,
 		arg.UserID,
 		arg.TokenHash,
@@ -41,11 +41,11 @@ DELETE FROM auth_tokens WHERE expires_at < $1 OR revoked_at IS NOT NULL
 `
 
 func (q *Queries) DeleteExpiredOrRevokedAuthTokens(ctx context.Context, expiresAt time.Time) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteExpiredOrRevokedAuthTokens, expiresAt)
+	result, err := q.db.Exec(ctx, deleteExpiredOrRevokedAuthTokens, expiresAt)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 const getAuthTokenByHash = `-- name: GetAuthTokenByHash :one
@@ -53,7 +53,7 @@ SELECT id, user_id, token_hash, expires_at, revoked_at, created_at FROM auth_tok
 `
 
 func (q *Queries) GetAuthTokenByHash(ctx context.Context, tokenHash string) (AuthToken, error) {
-	row := q.db.QueryRowContext(ctx, getAuthTokenByHash, tokenHash)
+	row := q.db.QueryRow(ctx, getAuthTokenByHash, tokenHash)
 	var i AuthToken
 	err := row.Scan(
 		&i.ID,
@@ -76,7 +76,7 @@ type RevokeAllAuthTokensForUserParams struct {
 }
 
 func (q *Queries) RevokeAllAuthTokensForUser(ctx context.Context, arg RevokeAllAuthTokensForUserParams) error {
-	_, err := q.db.ExecContext(ctx, revokeAllAuthTokensForUser, arg.RevokedAt, arg.UserID)
+	_, err := q.db.Exec(ctx, revokeAllAuthTokensForUser, arg.RevokedAt, arg.UserID)
 	return err
 }
 
@@ -90,7 +90,7 @@ type RevokeAuthTokenParams struct {
 }
 
 func (q *Queries) RevokeAuthToken(ctx context.Context, arg RevokeAuthTokenParams) error {
-	_, err := q.db.ExecContext(ctx, revokeAuthToken, arg.RevokedAt, arg.ID)
+	_, err := q.db.Exec(ctx, revokeAuthToken, arg.RevokedAt, arg.ID)
 	return err
 }
 
@@ -104,6 +104,6 @@ type RevokeAuthTokenByHashParams struct {
 }
 
 func (q *Queries) RevokeAuthTokenByHash(ctx context.Context, arg RevokeAuthTokenByHashParams) error {
-	_, err := q.db.ExecContext(ctx, revokeAuthTokenByHash, arg.RevokedAt, arg.TokenHash)
+	_, err := q.db.Exec(ctx, revokeAuthTokenByHash, arg.RevokedAt, arg.TokenHash)
 	return err
 }

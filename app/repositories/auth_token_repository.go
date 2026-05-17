@@ -2,31 +2,29 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/app/interfaces/repositories"
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
 type AuthTokenRepository struct {
-	db      *sql.DB
 	queries *sqlcgen.Queries
 }
 
-func NewAuthTokenRepository(db *sql.DB) *AuthTokenRepository {
+func NewAuthTokenRepository(pool *pgxpool.Pool) *AuthTokenRepository {
 	return &AuthTokenRepository{
-		db:      db,
-		queries: sqlcgen.New(db),
+		queries: sqlcgen.New(pool),
 	}
 }
 
-func (r *AuthTokenRepository) WithTx(tx *sql.Tx) repositories.AuthTokenRepository {
+func (r *AuthTokenRepository) WithTx(tx pgx.Tx) repositories.AuthTokenRepository {
 	return &AuthTokenRepository{
-		db:      r.db,
 		queries: sqlcgen.New(tx),
 	}
 }
@@ -40,14 +38,13 @@ func (r *AuthTokenRepository) Create(ctx context.Context, userID uuid.UUID, toke
 		CreatedAt: time.Now().UTC(),
 	}
 
-	err := r.queries.CreateAuthToken(ctx, sqlcgen.CreateAuthTokenParams{
+	if err := r.queries.CreateAuthToken(ctx, sqlcgen.CreateAuthTokenParams{
 		ID:        token.ID,
 		UserID:    token.UserID,
 		TokenHash: token.TokenHash,
 		ExpiresAt: token.ExpiresAt,
 		CreatedAt: token.CreatedAt,
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, eris.Wrap(err, "failed to create auth token")
 	}
 
@@ -65,11 +62,10 @@ func (r *AuthTokenRepository) GetByHash(ctx context.Context, tokenHash string) (
 
 func (r *AuthTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error {
 	now := time.Now().UTC()
-	err := r.queries.RevokeAuthToken(ctx, sqlcgen.RevokeAuthTokenParams{
+	if err := r.queries.RevokeAuthToken(ctx, sqlcgen.RevokeAuthTokenParams{
 		RevokedAt: &now,
 		ID:        id,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to revoke auth token")
 	}
 	return nil
@@ -77,11 +73,10 @@ func (r *AuthTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error {
 
 func (r *AuthTokenRepository) RevokeByHash(ctx context.Context, tokenHash string) error {
 	now := time.Now().UTC()
-	err := r.queries.RevokeAuthTokenByHash(ctx, sqlcgen.RevokeAuthTokenByHashParams{
+	if err := r.queries.RevokeAuthTokenByHash(ctx, sqlcgen.RevokeAuthTokenByHashParams{
 		RevokedAt: &now,
 		TokenHash: tokenHash,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to revoke auth token by hash")
 	}
 	return nil
@@ -89,11 +84,10 @@ func (r *AuthTokenRepository) RevokeByHash(ctx context.Context, tokenHash string
 
 func (r *AuthTokenRepository) RevokeAllForUser(ctx context.Context, userID uuid.UUID) error {
 	now := time.Now().UTC()
-	err := r.queries.RevokeAllAuthTokensForUser(ctx, sqlcgen.RevokeAllAuthTokensForUserParams{
+	if err := r.queries.RevokeAllAuthTokensForUser(ctx, sqlcgen.RevokeAllAuthTokensForUserParams{
 		RevokedAt: &now,
 		UserID:    userID,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to revoke all auth tokens for user")
 	}
 	return nil

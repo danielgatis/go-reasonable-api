@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/url"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"go-reasonable-api/support/db"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/rotisserie/eris"
 )
 
@@ -90,7 +90,7 @@ func (s *EmailVerificationService) Verify(ctx context.Context, token string) err
 
 	verification, err := s.emailVerificationRepo.GetByTokenHash(ctx, tokenHash)
 	if err != nil {
-		if eris.Is(err, sql.ErrNoRows) {
+		if eris.Is(err, pgx.ErrNoRows) {
 			return errors.ErrInvalidVerificationToken
 		}
 		return eris.Wrap(err, "failed to get email verification by token hash")
@@ -104,7 +104,7 @@ func (s *EmailVerificationService) Verify(ctx context.Context, token string) err
 		return errors.ErrTokenExpired
 	}
 
-	return s.txManager.RunInTx(ctx, func(tx *sql.Tx) error {
+	return s.txManager.RunInTx(ctx, func(tx pgx.Tx) error {
 		txUserRepo := s.userRepo.WithTx(tx)
 		txEmailVerificationRepo := s.emailVerificationRepo.WithTx(tx)
 
@@ -126,7 +126,7 @@ func (s *EmailVerificationService) Verify(ctx context.Context, token string) err
 func (s *EmailVerificationService) Resend(ctx context.Context, email string) error {
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		if eris.Is(err, sql.ErrNoRows) {
+		if eris.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
 		return eris.Wrap(err, "failed to get user by email")

@@ -2,12 +2,12 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // EmailVerificationRepository manages email verification token persistence.
@@ -15,7 +15,7 @@ import (
 // Similar lifecycle to PasswordResetRepository: tokens are single-use
 // and previous tokens are invalidated when a new one is created.
 type EmailVerificationRepository interface {
-	WithTx(tx *sql.Tx) EmailVerificationRepository
+	WithTx(tx pgx.Tx) EmailVerificationRepository
 
 	Create(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt time.Time) (*sqlcgen.EmailVerification, error)
 	GetByTokenHash(ctx context.Context, tokenHash string) (*sqlcgen.EmailVerification, error)

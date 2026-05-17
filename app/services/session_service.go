@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/app/errors"
@@ -12,6 +11,7 @@ import (
 	"go-reasonable-api/support/config"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/rotisserie/eris"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,7 +43,7 @@ func NewSessionService(
 func (s *SessionService) Create(ctx context.Context, email, password string) (*sqlcgen.User, string, error) {
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		if eris.Is(err, sql.ErrNoRows) {
+		if eris.Is(err, pgx.ErrNoRows) {
 			return nil, "", errors.ErrInvalidCredentials
 		}
 		return nil, "", eris.Wrap(err, "failed to get user by email")
@@ -86,7 +86,7 @@ func (s *SessionService) ValidateToken(ctx context.Context, token string) (*sqlc
 
 	authToken, err := s.authTokenRepo.GetByHash(ctx, tokenHash)
 	if err != nil {
-		if eris.Is(err, sql.ErrNoRows) {
+		if eris.Is(err, pgx.ErrNoRows) {
 			return nil, errors.ErrInvalidToken
 		}
 		return nil, eris.Wrap(err, "failed to get auth token")

@@ -45,5 +45,8 @@ func run(cmd *cobra.Command, args []string) error {
 		w.Shutdown()
 	})
 
-	return w.Run()
+	if err := w.Run(); err != nil {
+		return eris.Wrap(err, "worker run failed")
+	}
+	return nil
 }

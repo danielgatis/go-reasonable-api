@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
+	"github.com/rotisserie/eris"
 )
 
 func AuthMiddleware(sessionService services.SessionService) echo.MiddlewareFunc {
@@ -28,7 +29,7 @@ func AuthMiddleware(sessionService services.SessionService) echo.MiddlewareFunc 
 			token := parts[1]
 			authToken, err := sessionService.ValidateToken(c.Request().Context(), token)
 			if err != nil {
-				return err
+				return eris.Wrap(err, "failed to validate token")
 			}
 
 			setAuthContext(c, authToken.UserID, token)

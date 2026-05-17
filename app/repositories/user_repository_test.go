@@ -2,17 +2,17 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUserRepository(t *testing.T) {
 	tx := setupTest(t)
-	repo := NewUserRepository(testDB).WithTx(tx)
+	repo := NewUserRepository(testPool).WithTx(tx)
 	ctx := context.Background()
 
 	t.Run("Create", func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestUserRepository(t *testing.T) {
 
 	t.Run("GetByID_NotFound", func(t *testing.T) {
 		user, err := repo.GetByID(ctx, uuid.New())
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		assert.Nil(t, user)
 	})
 
@@ -55,7 +55,7 @@ func TestUserRepository(t *testing.T) {
 
 	t.Run("GetByEmail_NotFound", func(t *testing.T) {
 		user, err := repo.GetByEmail(ctx, "notfound@example.com")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		assert.Nil(t, user)
 	})
 

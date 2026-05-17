@@ -2,7 +2,6 @@ package services_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -14,8 +13,9 @@ import (
 	"go-reasonable-api/support/config"
 	"go-reasonable-api/support/db"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -79,9 +79,9 @@ func TestUserService_Create(t *testing.T) {
 			password: "password123",
 			userName: "Test User",
 			setupMock: func(m *mocks.MockUserRepository) {
-				m.EXPECT().EmailExists(mock.Anything, "test@example.com").Return(false, sql.ErrConnDone)
+				m.EXPECT().EmailExists(mock.Anything, "test@example.com").Return(false, pgx.ErrTxClosed)
 			},
-			expectedErr: sql.ErrConnDone,
+			expectedErr: pgx.ErrTxClosed,
 		},
 	}
 
@@ -131,7 +131,7 @@ func TestUserService_GetByID(t *testing.T) {
 			name:   "returns ErrUserNotFound when user does not exist",
 			userID: userID,
 			setupMock: func(m *mocks.MockUserRepository) {
-				m.EXPECT().GetByID(mock.Anything, userID).Return(nil, sql.ErrNoRows)
+				m.EXPECT().GetByID(mock.Anything, userID).Return(nil, pgx.ErrNoRows)
 			},
 			expectedErr: errors.ErrUserNotFound,
 		},
@@ -139,9 +139,9 @@ func TestUserService_GetByID(t *testing.T) {
 			name:   "returns error when repository fails",
 			userID: userID,
 			setupMock: func(m *mocks.MockUserRepository) {
-				m.EXPECT().GetByID(mock.Anything, userID).Return(nil, sql.ErrConnDone)
+				m.EXPECT().GetByID(mock.Anything, userID).Return(nil, pgx.ErrTxClosed)
 			},
-			expectedErr: sql.ErrConnDone,
+			expectedErr: pgx.ErrTxClosed,
 		},
 	}
 
@@ -190,7 +190,7 @@ func TestUserService_GetByEmail(t *testing.T) {
 			name:  "returns ErrUserNotFound when user does not exist",
 			email: "notfound@example.com",
 			setupMock: func(m *mocks.MockUserRepository) {
-				m.EXPECT().GetByEmail(mock.Anything, "notfound@example.com").Return(nil, sql.ErrNoRows)
+				m.EXPECT().GetByEmail(mock.Anything, "notfound@example.com").Return(nil, pgx.ErrNoRows)
 			},
 			expectedErr: errors.ErrUserNotFound,
 		},
@@ -198,9 +198,9 @@ func TestUserService_GetByEmail(t *testing.T) {
 			name:  "returns error when repository fails",
 			email: "test@example.com",
 			setupMock: func(m *mocks.MockUserRepository) {
-				m.EXPECT().GetByEmail(mock.Anything, "test@example.com").Return(nil, sql.ErrConnDone)
+				m.EXPECT().GetByEmail(mock.Anything, "test@example.com").Return(nil, pgx.ErrTxClosed)
 			},
-			expectedErr: sql.ErrConnDone,
+			expectedErr: pgx.ErrTxClosed,
 		},
 	}
 
@@ -230,22 +230,21 @@ func TestUserService_ScheduleDeletion(t *testing.T) {
 	userID := uuid.New()
 
 	t.Run("returns error when user not found", func(t *testing.T) {
-		mockDB, mockSQL, err := sqlmock.New()
+		mockPool, err := pgxmock.NewPool()
 		require.NoError(t, err)
-		defer func() { _ = mockDB.Close() }()
+		defer mockPool.Close()
 
-		mockSQL.ExpectBegin()
-		mockSQL.ExpectRollback()
+		mockPool.ExpectBegin()
+		mockPool.ExpectRollback()
 
-		txManager := db.NewTxManager(mockDB)
+		txManager := db.NewTxManager(mockPool)
 		mockRepo := mocks.NewMockUserRepository(t)
 		mockAuthTokenRepo := mocks.NewMockAuthTokenRepository(t)
 		mockTaskClient := mocksSupport.NewMockTaskClient(t)
 
-		// WithTx returns itself for chaining
 		mockRepo.EXPECT().WithTx(mock.Anything).Return(mockRepo)
 		mockAuthTokenRepo.EXPECT().WithTx(mock.Anything).Return(mockAuthTokenRepo)
-		mockRepo.EXPECT().GetByID(mock.Anything, userID).Return(nil, sql.ErrNoRows)
+		mockRepo.EXPECT().GetByID(mock.Anything, userID).Return(nil, pgx.ErrNoRows)
 
 		service := services.NewUserService(newTestConfig(), txManager, mockRepo, mockAuthTokenRepo, mockTaskClient)
 		err = service.ScheduleDeletion(ctx, userID)
@@ -254,14 +253,14 @@ func TestUserService_ScheduleDeletion(t *testing.T) {
 	})
 
 	t.Run("returns error when deletion already scheduled", func(t *testing.T) {
-		mockDB, mockSQL, err := sqlmock.New()
+		mockPool, err := pgxmock.NewPool()
 		require.NoError(t, err)
-		defer func() { _ = mockDB.Close() }()
+		defer mockPool.Close()
 
-		mockSQL.ExpectBegin()
-		mockSQL.ExpectRollback()
+		mockPool.ExpectBegin()
+		mockPool.ExpectRollback()
 
-		txManager := db.NewTxManager(mockDB)
+		txManager := db.NewTxManager(mockPool)
 		mockRepo := mocks.NewMockUserRepository(t)
 		mockAuthTokenRepo := mocks.NewMockAuthTokenRepository(t)
 		mockTaskClient := mocksSupport.NewMockTaskClient(t)
@@ -282,14 +281,14 @@ func TestUserService_ScheduleDeletion(t *testing.T) {
 	})
 
 	t.Run("schedules deletion successfully", func(t *testing.T) {
-		mockDB, mockSQL, err := sqlmock.New()
+		mockPool, err := pgxmock.NewPool()
 		require.NoError(t, err)
-		defer func() { _ = mockDB.Close() }()
+		defer mockPool.Close()
 
-		mockSQL.ExpectBegin()
-		mockSQL.ExpectCommit()
+		mockPool.ExpectBegin()
+		mockPool.ExpectCommit()
 
-		txManager := db.NewTxManager(mockDB)
+		txManager := db.NewTxManager(mockPool)
 		mockRepo := mocks.NewMockUserRepository(t)
 		mockAuthTokenRepo := mocks.NewMockAuthTokenRepository(t)
 		mockTaskClient := mocksSupport.NewMockTaskClient(t)

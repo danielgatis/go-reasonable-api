@@ -26,7 +26,7 @@ type CreateEmailVerificationParams struct {
 }
 
 func (q *Queries) CreateEmailVerification(ctx context.Context, arg CreateEmailVerificationParams) error {
-	_, err := q.db.ExecContext(ctx, createEmailVerification,
+	_, err := q.db.Exec(ctx, createEmailVerification,
 		arg.ID,
 		arg.UserID,
 		arg.TokenHash,
@@ -41,11 +41,11 @@ DELETE FROM email_verifications WHERE expires_at < $1 OR used_at IS NOT NULL
 `
 
 func (q *Queries) DeleteExpiredOrUsedEmailVerifications(ctx context.Context, expiresAt time.Time) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteExpiredOrUsedEmailVerifications, expiresAt)
+	result, err := q.db.Exec(ctx, deleteExpiredOrUsedEmailVerifications, expiresAt)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 const getEmailVerificationByTokenHash = `-- name: GetEmailVerificationByTokenHash :one
@@ -53,7 +53,7 @@ SELECT id, user_id, token_hash, expires_at, used_at, created_at FROM email_verif
 `
 
 func (q *Queries) GetEmailVerificationByTokenHash(ctx context.Context, tokenHash string) (EmailVerification, error) {
-	row := q.db.QueryRowContext(ctx, getEmailVerificationByTokenHash, tokenHash)
+	row := q.db.QueryRow(ctx, getEmailVerificationByTokenHash, tokenHash)
 	var i EmailVerification
 	err := row.Scan(
 		&i.ID,
@@ -76,7 +76,7 @@ type InvalidateAllEmailVerificationsForUserParams struct {
 }
 
 func (q *Queries) InvalidateAllEmailVerificationsForUser(ctx context.Context, arg InvalidateAllEmailVerificationsForUserParams) error {
-	_, err := q.db.ExecContext(ctx, invalidateAllEmailVerificationsForUser, arg.UsedAt, arg.UserID)
+	_, err := q.db.Exec(ctx, invalidateAllEmailVerificationsForUser, arg.UsedAt, arg.UserID)
 	return err
 }
 
@@ -90,6 +90,6 @@ type MarkEmailVerificationUsedParams struct {
 }
 
 func (q *Queries) MarkEmailVerificationUsed(ctx context.Context, arg MarkEmailVerificationUsedParams) error {
-	_, err := q.db.ExecContext(ctx, markEmailVerificationUsed, arg.UsedAt, arg.ID)
+	_, err := q.db.Exec(ctx, markEmailVerificationUsed, arg.UsedAt, arg.ID)
 	return err
 }

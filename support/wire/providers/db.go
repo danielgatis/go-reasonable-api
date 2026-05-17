@@ -1,34 +1,39 @@
 package providers
 
 import (
-	"database/sql"
+	"context"
 
 	"go-reasonable-api/support/config"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
-func ProvideDB(cfg *config.Config) (*sql.DB, func(), error) {
-	db, err := sql.Open("postgres", cfg.Database.URL)
+func ProvideDB(cfg *config.Config) (*pgxpool.Pool, func(), error) {
+	poolCfg, err := pgxpool.ParseConfig(cfg.Database.URL)
 	if err != nil {
-		return nil, nil, eris.Wrap(err, "failed to open database connection")
+		return nil, nil, eris.Wrap(err, "failed to parse database url")
 	}
 
-	// Configure connection pool
-	db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-	db.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
-	db.SetConnMaxIdleTime(cfg.Database.ConnMaxIdleTime)
+	poolCfg.MaxConns = int32(cfg.Database.MaxOpenConns)
+	poolCfg.MinConns = int32(cfg.Database.MaxIdleConns)
+	poolCfg.MaxConnLifetime = cfg.Database.ConnMaxLifetime
+	poolCfg.MaxConnIdleTime = cfg.Database.ConnMaxIdleTime
 
-	if err := db.Ping(); err != nil {
-		_ = db.Close()
+	ctx := context.Background()
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
+	if err != nil {
+		return nil, nil, eris.Wrap(err, "failed to create database pool")
+	}
+
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
 		return nil, nil, eris.Wrap(err, "failed to ping database")
 	}
 
 	cleanup := func() {
-		_ = db.Close()
+		pool.Close()
 	}
 
-	return db, cleanup, nil
+	return pool, cleanup, nil
 }

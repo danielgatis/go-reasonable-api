@@ -2,31 +2,29 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/app/interfaces/repositories"
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
 type PasswordResetRepository struct {
-	db      *sql.DB
 	queries *sqlcgen.Queries
 }
 
-func NewPasswordResetRepository(db *sql.DB) *PasswordResetRepository {
+func NewPasswordResetRepository(pool *pgxpool.Pool) *PasswordResetRepository {
 	return &PasswordResetRepository{
-		db:      db,
-		queries: sqlcgen.New(db),
+		queries: sqlcgen.New(pool),
 	}
 }
 
-func (r *PasswordResetRepository) WithTx(tx *sql.Tx) repositories.PasswordResetRepository {
+func (r *PasswordResetRepository) WithTx(tx pgx.Tx) repositories.PasswordResetRepository {
 	return &PasswordResetRepository{
-		db:      r.db,
 		queries: sqlcgen.New(tx),
 	}
 }
@@ -40,14 +38,13 @@ func (r *PasswordResetRepository) Create(ctx context.Context, userID uuid.UUID, 
 		CreatedAt: time.Now().UTC(),
 	}
 
-	err := r.queries.CreatePasswordReset(ctx, sqlcgen.CreatePasswordResetParams{
+	if err := r.queries.CreatePasswordReset(ctx, sqlcgen.CreatePasswordResetParams{
 		ID:        reset.ID,
 		UserID:    reset.UserID,
 		TokenHash: reset.TokenHash,
 		ExpiresAt: reset.ExpiresAt,
 		CreatedAt: reset.CreatedAt,
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, eris.Wrap(err, "failed to create password reset")
 	}
 
@@ -65,11 +62,10 @@ func (r *PasswordResetRepository) GetByTokenHash(ctx context.Context, tokenHash 
 
 func (r *PasswordResetRepository) MarkUsed(ctx context.Context, id uuid.UUID) error {
 	now := time.Now().UTC()
-	err := r.queries.MarkPasswordResetUsed(ctx, sqlcgen.MarkPasswordResetUsedParams{
+	if err := r.queries.MarkPasswordResetUsed(ctx, sqlcgen.MarkPasswordResetUsedParams{
 		UsedAt: &now,
 		ID:     id,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to mark password reset as used")
 	}
 	return nil
@@ -77,11 +73,10 @@ func (r *PasswordResetRepository) MarkUsed(ctx context.Context, id uuid.UUID) er
 
 func (r *PasswordResetRepository) InvalidateAllForUser(ctx context.Context, userID uuid.UUID) error {
 	now := time.Now().UTC()
-	err := r.queries.InvalidateAllPasswordResetsForUser(ctx, sqlcgen.InvalidateAllPasswordResetsForUserParams{
+	if err := r.queries.InvalidateAllPasswordResetsForUser(ctx, sqlcgen.InvalidateAllPasswordResetsForUserParams{
 		UsedAt: &now,
 		UserID: userID,
-	})
-	if err != nil {
+	}); err != nil {
 		return eris.Wrap(err, "failed to invalidate all password resets for user")
 	}
 	return nil

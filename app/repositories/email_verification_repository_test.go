@@ -2,19 +2,19 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEmailVerificationRepository(t *testing.T) {
 	tx := setupTest(t)
-	userRepo := NewUserRepository(testDB).WithTx(tx)
-	repo := NewEmailVerificationRepository(testDB).WithTx(tx)
+	userRepo := NewUserRepository(testPool).WithTx(tx)
+	repo := NewEmailVerificationRepository(testPool).WithTx(tx)
 	ctx := context.Background()
 
 	createUser := func(t *testing.T) uuid.UUID {
@@ -51,7 +51,7 @@ func TestEmailVerificationRepository(t *testing.T) {
 
 	t.Run("GetByTokenHash_NotFound", func(t *testing.T) {
 		verification, err := repo.GetByTokenHash(ctx, "nonexistenthash")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		assert.Nil(t, verification)
 	})
 
@@ -113,8 +113,8 @@ func TestEmailVerificationRepository(t *testing.T) {
 
 		// Expired and used should be deleted
 		_, err = repo.GetByTokenHash(ctx, "expiredverify")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 		_, err = repo.GetByTokenHash(ctx, "usedverify")
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		require.ErrorIs(t, err, pgx.ErrNoRows)
 	})
 }

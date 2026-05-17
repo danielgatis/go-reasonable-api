@@ -2,23 +2,23 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"go-reasonable-api/db/sqlcgen"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // UserRepository provides user persistence operations.
 //
-// GetByID and GetByEmail return nil without error when not found.
-// Callers must check for nil to distinguish "not found" from errors.
+// GetByID and GetByEmail return a wrapped pgx.ErrNoRows when the user is not
+// found. Callers should check via eris.Is(err, pgx.ErrNoRows).
 //
 // DeleteScheduledUsers removes users whose deletion_scheduled_at has passed.
 // Returns the count of deleted users for logging purposes.
 type UserRepository interface {
-	WithTx(tx *sql.Tx) UserRepository
+	WithTx(tx pgx.Tx) UserRepository
 
 	Create(ctx context.Context, name, email, passwordHash string) (*sqlcgen.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*sqlcgen.User, error)

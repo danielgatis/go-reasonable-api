@@ -39,6 +39,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // BaseProviderSet contains providers shared between API and Worker
@@ -86,6 +87,7 @@ var APIProviderSet = wire.NewSet(
 	BaseProviderSet,
 	providers.ProvideDB,
 	providers.ProvideTxManager,
+	wire.Bind(new(handlers.DBPinger), new(*pgxpool.Pool)),
 	providers.ProvideAsynqClient,
 	wire.Bind(new(handlers.RedisPinger), new(*asynq.Client)),
 	providers.ProvideTaskClient,
